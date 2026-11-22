@@ -8,7 +8,7 @@ PA_ProfessionCatalog = {
     { id = "JEWELCRAFTING", name = "Joyería", category = "PRIMARY", module = nil },
     { id = "LEATHERWORKING", name = "Peletería", category = "PRIMARY", module = "PA_Leatherworking" },
     { id = "MINING", name = "Minería", category = "PRIMARY", module = nil },
-    { id = "SKINNING", name = "Desuello", category = "SECONDARY", module = nil },
+    { id = "SKINNING", name = "Desuello", category = "PRIMARY", module = nil },
     { id = "TAILORING", name = "Sastrería", category = "PRIMARY", module = nil },
     { id = "COOKING", name = "Cocina", category = "SECONDARY", module = nil },
     { id = "FIRST_AID", name = "Primeros auxilios", category = "SECONDARY", module = nil },
