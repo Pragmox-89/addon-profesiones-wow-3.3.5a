@@ -225,6 +225,8 @@ function PA:CreateProfessionFrame()
             local button = professionButtons[profession.id]
             button:Hide()
             if self.knownProfessions[profession.id] then
+                local skill = self.knownProfessions[profession.id]
+                button:SetText(profession.name .. "  (" .. tostring(skill.rank) .. "/" .. tostring(skill.maxRank) .. ")")
                 if profession.category == "PRIMARY" then
                     button:ClearAllPoints()
                     button:SetPoint("TOPLEFT", primaryPanel, "TOPLEFT", 18, -42 - primaryIndex * 32)
