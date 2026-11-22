@@ -1,5 +1,9 @@
-PA_LeatherworkingRecipes = PA_LeatherworkingRecipes or {}
+PA = PA or {}
 
--- Datos iniciales vacíos a propósito.
--- Añadiremos recetas verificadas para el servidor objetivo, sin asumir
--- que todos los servidores privados usan la misma base de datos.
+PA_Leatherworking = {
+    id = "LEATHERWORKING",
+    name = "Peletería",
+    recipes = PA_LeatherworkingRecipes or {}
+}
+
+PA:RegisterProfession("LEATHERWORKING", PA_Leatherworking)
