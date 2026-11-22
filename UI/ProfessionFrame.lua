@@ -57,7 +57,7 @@ function PA:CreateProfessionFrame()
     local professionText = CreateLabel(frame, "Selecciona una profesión", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 104, -61)
     local skillLevelText = CreateLabel(frame, "Nivel actual: — / —", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 330, -61)
     local skillBar = CreateFrame("StatusBar", nil, frame)
-    skillBar:SetSize(390, 14)
+    skillBar:SetSize(315, 14)
     skillBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 330, -82)
     skillBar:SetStatusBarTexture("Interface\\\\TargetingFrame\\\\UI-StatusBar")
     skillBar:SetStatusBarColor(0.1, 0.8, 0.12)
@@ -85,7 +85,7 @@ function PA:CreateProfessionFrame()
     CreateLabel(left, "Recetas", "GameFontNormal", "TOPLEFT", left, "TOPLEFT", 12, -10)
 
     local search = CreateFrame("EditBox", nil, left, "InputBoxTemplate")
-    search:SetSize(190, 20)
+    search:SetSize(150, 20)
     search:SetPoint("TOPRIGHT", left, "TOPRIGHT", -14, -7)
     search:SetAutoFocus(false)
     search:SetText("")
@@ -199,7 +199,6 @@ function PA:CreateProfessionFrame()
         CreateProfessionButton(profession)
     end
 
-    CreateLabel(selectionPanel, "Profesiones aprendidas", "GameFontDisableSmall", "BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 4, -3, 200)
 
     frame.professionID = nil
     frame.filteredRecipes = {}
