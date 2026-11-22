@@ -2,11 +2,12 @@
 
 Add-on modular para World of Warcraft 3.3.5a (Interface 30300), diseñado para reunir todas las profesiones en una sola herramienta.
 
-## Estado actual — versión 0.3.0
+## Estado actual — versión 0.4.0
 
 - Cargador del add-on y comando `/pa`.
-- Ventana ampliada con buscador de recetas, lista seleccionable y panel de detalles.
-- Catálogo central con las profesiones de WoW 3.3.5a.
+- Selector de profesiones dividido en primarias y secundarias.
+- Ventana de recetas con buscador, lista seleccionable y panel de detalles.
+- Catálogo central con las profesiones de WoW 3.3.5a, clasificadas por categoría.
 - Peletería registrada como primer módulo de profesión.
 - Estructura preparada para añadir módulos de datos independientes.
 - Interfaz preparada para mostrar recetas, dificultad, habilidad, requisitos y materiales. La base de recetas de Peletería aún debe cargarse y validarse en el servidor.
@@ -21,7 +22,7 @@ Add-on modular para World of Warcraft 3.3.5a (Interface 30300), diseñado para r
 
 ## Próximas etapas
 
-1. Probar la carga en el cliente 3.3.5a y corregir cualquier error de Lua o interfaz.
+1. Probar la selección de profesiones y la carga en el cliente 3.3.5a; corregir errores de Lua o interfaz.
 2. Conectar la ventana con las profesiones y recetas conocidas por el personaje.
 3. Incorporar datos de recetas de Peletería y comprobar los rangos de habilidad.
 4. Implementar búsqueda, filtros por color y recomendación según habilidad/materiales.
