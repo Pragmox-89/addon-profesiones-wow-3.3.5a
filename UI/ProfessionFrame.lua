@@ -24,7 +24,7 @@ end
 function PA:CreateProfessionFrame()
     if self.frame then return self.frame end
 
-    local frame = CreateFrame("Frame", "ProfessionAssistantFrame", UIParent)
+    local frame = CreateFrame("Frame", "ProfessionAssistantFrame", UIParent, "UIPanelDialogTemplate")
     frame:SetWidth(760)
     frame:SetHeight(500)
     frame:SetPoint("CENTER")
