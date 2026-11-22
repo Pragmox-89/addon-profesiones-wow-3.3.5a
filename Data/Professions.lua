@@ -1,18 +1,18 @@
 PA_ProfessionCatalog = {
-    { id = "ALCHEMY", name = "Alquimia", module = nil },
-    { id = "BLACKSMITHING", name = "Herrería", module = nil },
-    { id = "ENCHANTING", name = "Encantamiento", module = nil },
-    { id = "ENGINEERING", name = "Ingeniería", module = nil },
-    { id = "HERBALISM", name = "Herboristería", module = nil },
-    { id = "INSCRIPTION", name = "Inscripción", module = nil },
-    { id = "JEWELCRAFTING", name = "Joyería", module = nil },
-    { id = "LEATHERWORKING", name = "Peletería", module = "PA_Leatherworking" },
-    { id = "MINING", name = "Minería", module = nil },
-    { id = "SKINNING", name = "Desuello", module = nil },
-    { id = "TAILORING", name = "Sastrería", module = nil },
-    { id = "COOKING", name = "Cocina", module = nil },
-    { id = "FIRST_AID", name = "Primeros auxilios", module = nil },
-    { id = "FISHING", name = "Pesca", module = nil }
+    { id = "ALCHEMY", name = "Alquimia", category = "PRIMARY", module = nil },
+    { id = "BLACKSMITHING", name = "Herrería", category = "PRIMARY", module = nil },
+    { id = "ENCHANTING", name = "Encantamiento", category = "PRIMARY", module = nil },
+    { id = "ENGINEERING", name = "Ingeniería", category = "PRIMARY", module = nil },
+    { id = "HERBALISM", name = "Herboristería", category = "PRIMARY", module = nil },
+    { id = "INSCRIPTION", name = "Inscripción", category = "PRIMARY", module = nil },
+    { id = "JEWELCRAFTING", name = "Joyería", category = "PRIMARY", module = nil },
+    { id = "LEATHERWORKING", name = "Peletería", category = "PRIMARY", module = "PA_Leatherworking" },
+    { id = "MINING", name = "Minería", category = "PRIMARY", module = nil },
+    { id = "SKINNING", name = "Desuello", category = "SECONDARY", module = nil },
+    { id = "TAILORING", name = "Sastrería", category = "PRIMARY", module = nil },
+    { id = "COOKING", name = "Cocina", category = "SECONDARY", module = nil },
+    { id = "FIRST_AID", name = "Primeros auxilios", category = "SECONDARY", module = nil },
+    { id = "FISHING", name = "Pesca", category = "SECONDARY", module = nil }
 }
 
 PA = PA or {}
