@@ -2,10 +2,13 @@ PA = PA or {}
 
 local addon = CreateFrame("Frame")
 addon:RegisterEvent("ADDON_LOADED")
+addon:RegisterEvent("SKILL_LINES_CHANGED")
 addon:SetScript("OnEvent", function(self, event, name)
     if event == "ADDON_LOADED" and name == "ProfessionAssistant" then
         PA:CreateProfessionFrame()
         DEFAULT_CHAT_FRAME:AddMessage("|cff66ccffProfession Assistant|r cargado. Escribe |cffffff00/pa|r para abrirlo.")
+    elseif event == "SKILL_LINES_CHANGED" and PA.frame then
+        PA.frame:RefreshProfessionSelection()
     end
 end)
 
@@ -15,6 +18,7 @@ SlashCmdList["PROFESSIONASSISTANT"] = function()
     if PA.frame:IsShown() then
         PA.frame:Hide()
     else
+        PA.frame:RefreshProfessionSelection()
         PA.frame:Show()
     end
 end
