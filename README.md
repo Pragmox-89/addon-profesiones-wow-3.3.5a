@@ -23,7 +23,7 @@ Add-on modular para World of Warcraft 3.3.5a (Interface 30300), diseñado para r
 ## Próximas etapas
 
 1. Probar la selección de profesiones y la carga en el cliente 3.3.5a; corregir errores de Lua o interfaz.
-2. Conectar la ventana con las profesiones y recetas conocidas por el personaje.
+2. Conectar el catálogo de recetas con la profesión y habilidad del personaje.
 3. Incorporar datos de recetas de Peletería y comprobar los rangos de habilidad.
 4. Implementar búsqueda, filtros por color y recomendación según habilidad/materiales.
 5. Añadir el resto de profesiones usando el mismo sistema modular.
