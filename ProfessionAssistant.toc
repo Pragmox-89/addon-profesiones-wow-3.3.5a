@@ -1,0 +1,9 @@
+## Interface: 30300
+## Title: Profession Assistant
+## Notes: Asistente de profesiones para World of Warcraft 3.3.5a
+## Author: Pragmox-89
+## Version: 0.1.0
+
+Data\\Leatherworking.lua
+UI\\ProfessionFrame.lua
+Core.lua
