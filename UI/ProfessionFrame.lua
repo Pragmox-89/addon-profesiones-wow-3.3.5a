@@ -25,8 +25,8 @@ function PA:CreateProfessionFrame()
     if self.frame then return self.frame end
 
     local frame = CreateFrame("Frame", "ProfessionAssistantFrame", UIParent, "UIPanelDialogTemplate")
-    frame:SetWidth(760)
-    frame:SetHeight(500)
+    frame:SetWidth(960)
+    frame:SetHeight(620)
     frame:SetPoint("CENTER")
     frame:SetFrameStrata("DIALOG")
     frame:SetMovable(true)
@@ -49,16 +49,31 @@ function PA:CreateProfessionFrame()
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -6)
 
-    local professionText = CreateLabel(frame, "Selecciona una profesión", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 28, -55)
-    local changeProfession = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    changeProfession:SetSize(150, 24)
-    changeProfession:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -42, -49)
-    changeProfession:SetText("Cambiar profesión")
+    local brandIcon = frame:CreateTexture(nil, "ARTWORK")
+    brandIcon:SetSize(52, 52)
+    brandIcon:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, -30)
+    brandIcon:SetTexture("Interface\\\\Icons\\\\INV_Misc_Book_09")
+
+    local professionText = CreateLabel(frame, "Selecciona una profesión", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 104, -61)
+    local skillLevelText = CreateLabel(frame, "Nivel actual: — / —", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 330, -61)
+    local skillBar = CreateFrame("StatusBar", nil, frame)
+    skillBar:SetSize(390, 14)
+    skillBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 330, -82)
+    skillBar:SetStatusBarTexture("Interface\\\\TargetingFrame\\\\UI-StatusBar")
+    skillBar:SetStatusBarColor(0.1, 0.8, 0.12)
+    skillBar:SetMinMaxValues(0, 1)
+    skillBar:SetValue(0)
+    local skillBarBackground = skillBar:CreateTexture(nil, "BACKGROUND")
+    skillBarBackground:SetAllPoints(skillBar)
+    skillBarBackground:SetTexture("Interface\\\\TargetingFrame\\\\UI-StatusBar")
+    skillBarBackground:SetVertexColor(0.08, 0.08, 0.08, 0.9)
+
+    local nextStepText = CreateLabel(frame, "Recomendación: pendiente de recetas", "GameFontNormal", "TOPRIGHT", frame, "TOPRIGHT", -52, -61)
 
     local left = CreateFrame("Frame", nil, frame)
-    left:SetPoint("TOPLEFT", frame, "TOPLEFT", 24, -82)
-    left:SetWidth(330)
-    left:SetHeight(385)
+    left:SetPoint("TOPLEFT", frame, "TOPLEFT", 270, -122)
+    left:SetWidth(290)
+    left:SetHeight(390)
     left:SetBackdrop({
         bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -121,9 +136,9 @@ function PA:CreateProfessionFrame()
     right.materials = CreateLabel(right, "", "GameFontHighlightSmall", "TOPLEFT", right.materialsTitle, "BOTTOMLEFT", 0, -8, 340)
 
     local recommendation = CreateFrame("Frame", nil, frame)
-    recommendation:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 25)
-    recommendation:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -24, 25)
-    recommendation:SetHeight(72)
+    recommendation:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 30, 25)
+    recommendation:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -155, 25)
+    recommendation:SetHeight(60)
     recommendation:SetBackdrop({
         bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -132,16 +147,17 @@ function PA:CreateProfessionFrame()
     })
     recommendation:SetBackdropColor(0.08, 0.06, 0.02, 0.85)
     CreateLabel(recommendation, "Recomendación", "GameFontNormal", "TOPLEFT", recommendation, "TOPLEFT", 12, -9)
-    recommendation.text = CreateLabel(recommendation, "La recomendación aparecerá cuando carguemos recetas y habilidad.", "GameFontHighlightSmall", "TOPLEFT", recommendation, "TOPLEFT", 12, -30, 680)
+    recommendation.text = CreateLabel(recommendation, "El siguiente paso aparecerá cuando haya recetas y habilidad disponibles.", "GameFontHighlightSmall", "TOPLEFT", recommendation, "TOPLEFT", 12, -30, 700)
 
     local selectionPanel = CreateFrame("Frame", nil, frame)
-    selectionPanel:SetPoint("TOPLEFT", frame, "TOPLEFT", 24, -82)
-    selectionPanel:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -24, 24)
+    selectionPanel:SetPoint("TOPLEFT", frame, "TOPLEFT", 30, -122)
+    selectionPanel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 30, 90)
+    selectionPanel:SetWidth(210)
 
     local primaryPanel = CreateFrame("Frame", nil, selectionPanel)
     primaryPanel:SetPoint("TOPLEFT", selectionPanel, "TOPLEFT", 0, 0)
-    primaryPanel:SetPoint("BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 0, 0)
-    primaryPanel:SetWidth(450)
+    primaryPanel:SetWidth(210)
+    primaryPanel:SetHeight(180)
     primaryPanel:SetBackdrop({
         bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -152,7 +168,7 @@ function PA:CreateProfessionFrame()
     CreateLabel(primaryPanel, "Profesiones primarias", "GameFontNormal", "TOPLEFT", primaryPanel, "TOPLEFT", 16, -14)
 
     local secondaryPanel = CreateFrame("Frame", nil, selectionPanel)
-    secondaryPanel:SetPoint("TOPLEFT", primaryPanel, "TOPRIGHT", 14, 0)
+    secondaryPanel:SetPoint("TOPLEFT", primaryPanel, "BOTTOMLEFT", 0, -8)
     secondaryPanel:SetPoint("BOTTOMRIGHT", selectionPanel, "BOTTOMRIGHT", 0, 0)
     secondaryPanel:SetBackdrop({
         bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
@@ -170,7 +186,7 @@ function PA:CreateProfessionFrame()
     local function CreateProfessionButton(profession)
         local parent = profession.category == "PRIMARY" and primaryPanel or secondaryPanel
         local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-        button:SetSize(190, 32)
+        button:SetSize(174, 28)
         button:SetText(profession.name)
         button:SetScript("OnClick", function()
             frame:SelectProfession(profession.id)
@@ -183,7 +199,7 @@ function PA:CreateProfessionFrame()
         CreateProfessionButton(profession)
     end
 
-    CreateLabel(selectionPanel, "Solo aparecen las profesiones que tu personaje ha aprendido.", "GameFontHighlightSmall", "BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 4, -8, 700)
+    CreateLabel(selectionPanel, "Profesiones aprendidas", "GameFontDisableSmall", "BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 4, -3, 200)
 
     frame.professionID = nil
     frame.filteredRecipes = {}
@@ -194,13 +210,13 @@ function PA:CreateProfessionFrame()
         self.knownProfessions = {}
         local skillLineCount = GetNumSkillLines and GetNumSkillLines() or 0
         for skillIndex = 1, skillLineCount do
-            local skillName = GetSkillLineInfo(skillIndex)
+            local skillName, _, _, skillRank, _, _, skillMaxRank = GetSkillLineInfo(skillIndex)
             local normalizedName = string.lower(string.gsub(skillName or "", "%s+", ""))
             for _, profession in ipairs(PA_ProfessionCatalog) do
                 for _, alias in ipairs(profession.skillNames or {}) do
                     local normalizedAlias = string.lower(string.gsub(alias, "%s+", ""))
                     if normalizedName == normalizedAlias then
-                        self.knownProfessions[profession.id] = true
+                        self.knownProfessions[profession.id] = { rank = skillRank or 0, maxRank = skillMaxRank or 0 }
                     end
                 end
             end
@@ -213,11 +229,11 @@ function PA:CreateProfessionFrame()
             if self.knownProfessions[profession.id] then
                 if profession.category == "PRIMARY" then
                     button:ClearAllPoints()
-                    button:SetPoint("TOPLEFT", primaryPanel, "TOPLEFT", 18 + (primaryIndex % 2) * 205, -42 - math.floor(primaryIndex / 2) * 52)
+                    button:SetPoint("TOPLEFT", primaryPanel, "TOPLEFT", 18, -42 - primaryIndex * 32)
                     primaryIndex = primaryIndex + 1
                 else
                     button:ClearAllPoints()
-                    button:SetPoint("TOPLEFT", secondaryPanel, "TOPLEFT", 18, -42 - secondaryIndex * 52)
+                    button:SetPoint("TOPLEFT", secondaryPanel, "TOPLEFT", 18, -42 - secondaryIndex * 32)
                     secondaryIndex = secondaryIndex + 1
                 end
                 button:Show()
@@ -231,11 +247,6 @@ function PA:CreateProfessionFrame()
     function frame:ShowProfessionSelection()
         self:RefreshProfessionSelection()
         selectionPanel:Show()
-        professionText:Hide()
-        changeProfession:Hide()
-        left:Hide()
-        right:Hide()
-        recommendation:Hide()
     end
 
     function frame:SelectProfession(id)
@@ -249,22 +260,15 @@ function PA:CreateProfessionFrame()
         if not selected or not self.knownProfessions[selected.id] then return end
 
         self.professionID = selected.id
-        professionText:SetText("Profesión: " .. selected.name)
-        selectionPanel:Hide()
-        professionText:Show()
-        changeProfession:Show()
-        left:Show()
-        right:Show()
-        recommendation:Show()
-
+        local skill = self.knownProfessions[selected.id]
+        professionText:SetText(selected.name)
+        skillLevelText:SetText("Nivel actual: " .. tostring(skill.rank) .. " / " .. tostring(skill.maxRank))
+        skillBar:SetMinMaxValues(0, skill.maxRank > 0 and skill.maxRank or 1)
+        skillBar:SetValue(skill.rank)
+        nextStepText:SetText("Recomendación: pendiente de recetas")
         search:SetText("")
         self:RefreshRecipes()
     end
-
-    changeProfession:SetScript("OnClick", function()
-        frame:ShowProfessionSelection()
-    end)
-
 
     function frame:ShowRecipeDetails(index)
         local recipe = self.filteredRecipes[index]
@@ -324,11 +328,11 @@ function PA:CreateProfessionFrame()
         end
 
         if total == 0 then
-            right.recipeName:SetText("Aún no hay recetas")
+            right.recipeName:SetText(self.professionID and "Aún no hay recetas" or "Selecciona una profesión")
             right.skill:SetText("")
-            right.description:SetText("La profesión seleccionada todavía no tiene recetas registradas.")
+            right.description:SetText(self.professionID and "La profesión seleccionada todavía no tiene recetas registradas." or "Los detalles aparecerán aquí cuando elijas una profesión.")
             right.materialsTitle:SetText("")
-            right.materials:SetText("Cuando incorporemos sus datos, podrás consultar aquí recetas, materiales y requisitos.")
+            right.materials:SetText(self.professionID and "Cuando incorporemos sus datos, podrás consultar aquí recetas, materiales y requisitos." or "Selecciona una profesión aprendida en el panel de la izquierda.")
         end
     end
 
@@ -338,6 +342,12 @@ function PA:CreateProfessionFrame()
     end)
 
     frame:ShowProfessionSelection()
+    frame:RefreshRecipes()
+    local closeAction = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    closeAction:SetSize(112, 28)
+    closeAction:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -34, 27)
+    closeAction:SetText("Cerrar")
+    closeAction:SetScript("OnClick", function() frame:Hide() end)
     self.frame = frame
     return frame
 end
