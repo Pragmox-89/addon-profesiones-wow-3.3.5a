@@ -143,8 +143,8 @@ function PA:CreateProfessionFrame()
     primaryPanel:SetPoint("BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 0, 0)
     primaryPanel:SetWidth(450)
     primaryPanel:SetBackdrop({
-        bgFile = "Interface\\ChatFrame\\\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\\\UI-Tooltip-Border",
+        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
         tile = true, tileSize = 16, edgeSize = 12,
         insets = { left = 3, right = 3, top = 3, bottom = 3 }
     })
@@ -155,8 +155,8 @@ function PA:CreateProfessionFrame()
     secondaryPanel:SetPoint("TOPLEFT", primaryPanel, "TOPRIGHT", 14, 0)
     secondaryPanel:SetPoint("BOTTOMRIGHT", selectionPanel, "BOTTOMRIGHT", 0, 0)
     secondaryPanel:SetBackdrop({
-        bgFile = "Interface\\ChatFrame\\\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\\\UI-Tooltip-Border",
+        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
         tile = true, tileSize = 16, edgeSize = 12,
         insets = { left = 3, right = 3, top = 3, bottom = 3 }
     })
