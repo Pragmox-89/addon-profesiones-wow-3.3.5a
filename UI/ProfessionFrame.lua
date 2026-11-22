@@ -37,9 +37,8 @@ function PA:CreateProfessionFrame()
     frame:Hide()
     frame:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true, tileSize = 32, edgeSize = 32,
-        insets = { left = 11, right = 12, top = 12, bottom = 11 }
+        tile = true, tileSize = 32,
+        insets = { left = 18, right = 18, top = 18, bottom = 18 }
     })
     frame:SetBackdropColor(0, 0, 0, 1)
 
@@ -52,20 +51,20 @@ function PA:CreateProfessionFrame()
     local brandIcon = frame:CreateTexture(nil, "ARTWORK")
     brandIcon:SetSize(52, 52)
     brandIcon:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, -30)
-    brandIcon:SetTexture("Interface\\\\Icons\\\\INV_Misc_Book_09")
+    brandIcon:SetTexture("Interface\\Icons\\INV_Misc_Book_09")
 
     local professionText = CreateLabel(frame, "Selecciona una profesión", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 104, -61)
     local skillLevelText = CreateLabel(frame, "Nivel actual: — / —", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 330, -61)
     local skillBar = CreateFrame("StatusBar", nil, frame)
     skillBar:SetSize(315, 14)
     skillBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 330, -82)
-    skillBar:SetStatusBarTexture("Interface\\\\TargetingFrame\\\\UI-StatusBar")
+    skillBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
     skillBar:SetStatusBarColor(0.1, 0.8, 0.12)
     skillBar:SetMinMaxValues(0, 1)
     skillBar:SetValue(0)
     local skillBarBackground = skillBar:CreateTexture(nil, "BACKGROUND")
     skillBarBackground:SetAllPoints(skillBar)
-    skillBarBackground:SetTexture("Interface\\\\TargetingFrame\\\\UI-StatusBar")
+    skillBarBackground:SetTexture("Interface\\TargetingFrame\\UI-StatusBar")
     skillBarBackground:SetVertexColor(0.08, 0.08, 0.08, 0.9)
 
     local nextStepText = CreateLabel(frame, "Recomendación: pendiente de recetas", "GameFontNormal", "TOPRIGHT", frame, "TOPRIGHT", -52, -61)
