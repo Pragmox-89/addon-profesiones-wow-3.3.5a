@@ -40,7 +40,7 @@ function PA:CreateProfessionFrame()
         tile = true, tileSize = 32,
         insets = { left = 18, right = 18, top = 18, bottom = 18 }
     })
-    frame:SetBackdropColor(0, 0, 0, 1)
+    frame:SetBackdropColor(0.48, 0.43, 0.34, 0.98)
 
     local title = CreateLabel(frame, "Profession Assistant  |cffaaaaaa3.3.5a|r", "GameFontNormalLarge", "TOP", frame, "TOP", 0, -20)
     title:SetJustifyH("CENTER")
