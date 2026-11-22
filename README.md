@@ -2,10 +2,10 @@
 
 Add-on modular para World of Warcraft 3.3.5a (Interface 30300), diseñado para reunir todas las profesiones en una sola herramienta.
 
-## Estado actual — versión 0.4.0
+## Estado actual — versión 0.5.0
 
 - Cargador del add-on y comando `/pa`.
-- Selector de profesiones dividido en primarias y secundarias.
+- Selector dividido en profesiones primarias y secundarias; solo muestra las que el personaje ha aprendido y no elige ninguna por defecto.
 - Ventana de recetas con buscador, lista seleccionable y panel de detalles.
 - Catálogo central con las profesiones de WoW 3.3.5a, clasificadas por categoría.
 - Peletería registrada como primer módulo de profesión.
