@@ -2,9 +2,9 @@
 ## Title: Profession Assistant
 ## Notes: Asistente modular de profesiones para World of Warcraft 3.3.5a
 ## Author: Pragmox-89
-## Version: 0.2.0
+## Version: 0.3.0
 
-Data\\Professions.lua
-Data\\Leatherworking.lua
-UI\\ProfessionFrame.lua
+Data/Professions.lua
+Data/Leatherworking.lua
+UI/ProfessionFrame.lua
 Core.lua
