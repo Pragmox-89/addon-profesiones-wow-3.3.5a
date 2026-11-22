@@ -49,7 +49,11 @@ function PA:CreateProfessionFrame()
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -6)
 
-    local professionText = CreateLabel(frame, "Profesión: Peletería", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 28, -55)
+    local professionText = CreateLabel(frame, "Selecciona una profesión", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 28, -55)
+    local changeProfession = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    changeProfession:SetSize(150, 24)
+    changeProfession:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -42, -49)
+    changeProfession:SetText("Cambiar profesión")
 
     local left = CreateFrame("Frame", nil, frame)
     left:SetPoint("TOPLEFT", frame, "TOPLEFT", 24, -82)
@@ -130,9 +134,99 @@ function PA:CreateProfessionFrame()
     CreateLabel(recommendation, "Recomendación", "GameFontNormal", "TOPLEFT", recommendation, "TOPLEFT", 12, -9)
     recommendation.text = CreateLabel(recommendation, "La recomendación aparecerá cuando carguemos recetas y habilidad.", "GameFontHighlightSmall", "TOPLEFT", recommendation, "TOPLEFT", 12, -30, 680)
 
-    frame.professionID = "LEATHERWORKING"
+    local selectionPanel = CreateFrame("Frame", nil, frame)
+    selectionPanel:SetPoint("TOPLEFT", frame, "TOPLEFT", 24, -82)
+    selectionPanel:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -24, 24)
+
+    local primaryPanel = CreateFrame("Frame", nil, selectionPanel)
+    primaryPanel:SetPoint("TOPLEFT", selectionPanel, "TOPLEFT", 0, 0)
+    primaryPanel:SetPoint("BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 0, 0)
+    primaryPanel:SetWidth(450)
+    primaryPanel:SetBackdrop({
+        bgFile = "Interface\\\\ChatFrame\\\\ChatFrameBackground",
+        edgeFile = "Interface\\\\Tooltips\\\\UI-Tooltip-Border",
+        tile = true, tileSize = 16, edgeSize = 12,
+        insets = { left = 3, right = 3, top = 3, bottom = 3 }
+    })
+    primaryPanel:SetBackdropColor(0.04, 0.04, 0.04, 0.8)
+    CreateLabel(primaryPanel, "Profesiones primarias", "GameFontNormal", "TOPLEFT", primaryPanel, "TOPLEFT", 16, -14)
+
+    local secondaryPanel = CreateFrame("Frame", nil, selectionPanel)
+    secondaryPanel:SetPoint("TOPLEFT", primaryPanel, "TOPRIGHT", 14, 0)
+    secondaryPanel:SetPoint("BOTTOMRIGHT", selectionPanel, "BOTTOMRIGHT", 0, 0)
+    secondaryPanel:SetBackdrop({
+        bgFile = "Interface\\\\ChatFrame\\\\ChatFrameBackground",
+        edgeFile = "Interface\\\\Tooltips\\\\UI-Tooltip-Border",
+        tile = true, tileSize = 16, edgeSize = 12,
+        insets = { left = 3, right = 3, top = 3, bottom = 3 }
+    })
+    secondaryPanel:SetBackdropColor(0.04, 0.04, 0.04, 0.8)
+    CreateLabel(secondaryPanel, "Profesiones secundarias", "GameFontNormal", "TOPLEFT", secondaryPanel, "TOPLEFT", 14, -14)
+
+    local function CreateProfessionButton(parent, profession, column, row)
+        local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+        button:SetSize(190, 32)
+        button:SetPoint("TOPLEFT", parent, "TOPLEFT", 18 + column * 205, -42 - row * 52)
+        button:SetText(profession.name)
+        button:SetScript("OnClick", function()
+            frame:SelectProfession(profession.id)
+        end)
+        return button
+    end
+
+    local primaryIndex, secondaryIndex = 0, 0
+    for _, profession in ipairs(PA_ProfessionCatalog) do
+        if profession.category == "PRIMARY" then
+            CreateProfessionButton(primaryPanel, profession, primaryIndex % 2, math.floor(primaryIndex / 2))
+            primaryIndex = primaryIndex + 1
+        elseif profession.category == "SECONDARY" then
+            CreateProfessionButton(secondaryPanel, profession, secondaryIndex % 1, secondaryIndex)
+            secondaryIndex = secondaryIndex + 1
+        end
+    end
+
+    CreateLabel(selectionPanel, "Las profesiones sin módulo mostrarán sus datos cuando se incorporen.", "GameFontHighlightSmall", "BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 4, -8, 700)
+
+    frame.professionID = nil
     frame.filteredRecipes = {}
     frame.allRecipes = {}
+
+    function frame:ShowProfessionSelection()
+        selectionPanel:Show()
+        professionText:Hide()
+        changeProfession:Hide()
+        left:Hide()
+        right:Hide()
+        recommendation:Hide()
+    end
+
+    function frame:SelectProfession(id)
+        local selected
+        for _, profession in ipairs(PA_ProfessionCatalog) do
+            if profession.id == id then
+                selected = profession
+                break
+            end
+        end
+        if not selected then return end
+
+        self.professionID = selected.id
+        professionText:SetText("Profesión: " .. selected.name)
+        selectionPanel:Hide()
+        professionText:Show()
+        changeProfession:Show()
+        left:Show()
+        right:Show()
+        recommendation:Show()
+
+        search:SetText("")
+        self:RefreshRecipes()
+    end
+
+    changeProfession:SetScript("OnClick", function()
+        frame:ShowProfessionSelection()
+    end)
+
 
     function frame:ShowRecipeDetails(index)
         local recipe = self.filteredRecipes[index]
@@ -194,9 +288,9 @@ function PA:CreateProfessionFrame()
         if total == 0 then
             right.recipeName:SetText("Aún no hay recetas")
             right.skill:SetText("")
-            right.description:SetText("La interfaz ya está preparada, pero el módulo de Peletería todavía no tiene recetas verificadas.")
+            right.description:SetText("La profesión seleccionada todavía no tiene recetas registradas.")
             right.materialsTitle:SetText("")
-            right.materials:SetText("Cuando incorporemos los datos, podrás seleccionar una receta y consultar aquí sus materiales y requisitos.")
+            right.materials:SetText("Cuando incorporemos sus datos, podrás consultar aquí recetas, materiales y requisitos.")
         end
     end
 
@@ -205,7 +299,7 @@ function PA:CreateProfessionFrame()
         FauxScrollFrame_OnVerticalScroll(self, offset, ROW_HEIGHT, function() frame:RefreshRecipes() end)
     end)
 
-    frame:RefreshRecipes()
+    frame:ShowProfessionSelection()
     self.frame = frame
     return frame
 end
