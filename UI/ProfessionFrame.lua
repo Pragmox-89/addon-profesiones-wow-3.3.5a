@@ -163,35 +163,73 @@ function PA:CreateProfessionFrame()
     secondaryPanel:SetBackdropColor(0.04, 0.04, 0.04, 0.8)
     CreateLabel(secondaryPanel, "Profesiones secundarias", "GameFontNormal", "TOPLEFT", secondaryPanel, "TOPLEFT", 14, -14)
 
-    local function CreateProfessionButton(parent, profession, column, row)
+    local professionButtons = {}
+    local primaryEmpty = CreateLabel(primaryPanel, "No hay profesiones aprendidas.", "GameFontHighlightSmall", "TOPLEFT", primaryPanel, "TOPLEFT", 18, -48)
+    local secondaryEmpty = CreateLabel(secondaryPanel, "No hay profesiones aprendidas.", "GameFontHighlightSmall", "TOPLEFT", secondaryPanel, "TOPLEFT", 14, -48)
+
+    local function CreateProfessionButton(profession)
+        local parent = profession.category == "PRIMARY" and primaryPanel or secondaryPanel
         local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
         button:SetSize(190, 32)
-        button:SetPoint("TOPLEFT", parent, "TOPLEFT", 18 + column * 205, -42 - row * 52)
         button:SetText(profession.name)
         button:SetScript("OnClick", function()
             frame:SelectProfession(profession.id)
         end)
-        return button
+        button:Hide()
+        professionButtons[profession.id] = button
     end
 
-    local primaryIndex, secondaryIndex = 0, 0
     for _, profession in ipairs(PA_ProfessionCatalog) do
-        if profession.category == "PRIMARY" then
-            CreateProfessionButton(primaryPanel, profession, primaryIndex % 2, math.floor(primaryIndex / 2))
-            primaryIndex = primaryIndex + 1
-        elseif profession.category == "SECONDARY" then
-            CreateProfessionButton(secondaryPanel, profession, secondaryIndex % 1, secondaryIndex)
-            secondaryIndex = secondaryIndex + 1
-        end
+        CreateProfessionButton(profession)
     end
 
-    CreateLabel(selectionPanel, "Las profesiones sin módulo mostrarán sus datos cuando se incorporen.", "GameFontHighlightSmall", "BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 4, -8, 700)
+    CreateLabel(selectionPanel, "Solo aparecen las profesiones que tu personaje ha aprendido.", "GameFontHighlightSmall", "BOTTOMLEFT", selectionPanel, "BOTTOMLEFT", 4, -8, 700)
 
     frame.professionID = nil
     frame.filteredRecipes = {}
     frame.allRecipes = {}
+    frame.knownProfessions = {}
+
+    function frame:RefreshProfessionSelection()
+        self.knownProfessions = {}
+        local skillLineCount = GetNumSkillLines and GetNumSkillLines() or 0
+        for skillIndex = 1, skillLineCount do
+            local skillName = GetSkillLineInfo(skillIndex)
+            local normalizedName = string.lower(string.gsub(skillName or "", "%s+", ""))
+            for _, profession in ipairs(PA_ProfessionCatalog) do
+                for _, alias in ipairs(profession.skillNames or {}) do
+                    local normalizedAlias = string.lower(string.gsub(alias, "%s+", ""))
+                    if normalizedName == normalizedAlias then
+                        self.knownProfessions[profession.id] = true
+                    end
+                end
+            end
+        end
+
+        local primaryIndex, secondaryIndex = 0, 0
+        for _, profession in ipairs(PA_ProfessionCatalog) do
+            local button = professionButtons[profession.id]
+            button:Hide()
+            if self.knownProfessions[profession.id] then
+                if profession.category == "PRIMARY" then
+                    button:ClearAllPoints()
+                    button:SetPoint("TOPLEFT", primaryPanel, "TOPLEFT", 18 + (primaryIndex % 2) * 205, -42 - math.floor(primaryIndex / 2) * 52)
+                    primaryIndex = primaryIndex + 1
+                else
+                    button:ClearAllPoints()
+                    button:SetPoint("TOPLEFT", secondaryPanel, "TOPLEFT", 18, -42 - secondaryIndex * 52)
+                    secondaryIndex = secondaryIndex + 1
+                end
+                button:Show()
+            end
+        end
+
+        if primaryIndex == 0 then primaryEmpty:Show() else primaryEmpty:Hide() end
+        if secondaryIndex == 0 then secondaryEmpty:Show() else secondaryEmpty:Hide() end
+    end
 
     function frame:ShowProfessionSelection()
+        self:RefreshProfessionSelection()
         selectionPanel:Show()
         professionText:Hide()
         changeProfession:Hide()
@@ -208,7 +246,7 @@ function PA:CreateProfessionFrame()
                 break
             end
         end
-        if not selected then return end
+        if not selected or not self.knownProfessions[selected.id] then return end
 
         self.professionID = selected.id
         professionText:SetText("Profesión: " .. selected.name)
