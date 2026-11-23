@@ -2,7 +2,11 @@
 
 Addon para clientes de World of Warcraft 3.3.5a (Interface 30300). Detecta las profesiones que el personaje aprendió, las separa en primarias y secundarias y lee recetas del libro nativo del cliente.
 
-## Versión 0.8.2
+## Versión 0.8.3
+
+- Ajusta la ventana a una escala moderada y tipografía del tamaño habitual de WoW.
+- Muestra los materiales en tarjetas visibles y conserva el resultado real leído del libro nativo.
+- Mejora el fondo y los bordes para acercar el panel al estilo clásico de WoW.
 
 - Arranque en `PLAYER_LOGIN`, sin depender del nombre que el cliente reporte en `ADDON_LOADED`.
 - Mensaje visible al cargar para confirmar que el addon se inicializó.
