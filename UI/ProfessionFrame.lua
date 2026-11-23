@@ -146,9 +146,7 @@ function PA:CreateProfessionFrame()
     })
     recommendation:SetBackdropColor(0.08, 0.06, 0.02, 0.85)
     CreateLabel(recommendation, "Recomendación", "GameFontNormal", "TOPLEFT", recommendation, "TOPLEFT", 12, -9)
-    recommendation.text = CreateLabel(recommendation, "Abre una profesión aprendida para importar las recetas conocidas de tu personaje.", "GameFontHighlightSmall", "TOPLEFT", recommendation, "TOPLEFT", 12, -30, 700)
-
-    frame = frame or nil
+    recommendation.text = CreateLabel(recommendation, "Las recetas conocidas se cargarán al abrir su libro de profesión.", "GameFontHighlightSmall", "TOPLEFT", recommendation, "TOPLEFT", 12, -30, 700)
 
     local selectionPanel = CreateFrame("Frame", nil, frame)
     selectionPanel:SetPoint("TOPLEFT", frame, "TOPLEFT", 30, -122)
@@ -282,7 +280,14 @@ function PA:CreateProfessionFrame()
 
     function frame:SetRecipeStatus(message)
         recommendation.text:SetText(message or "")
-        nextStepText:SetText(message or "")
+        local recipes = PA.TradeSkillRecipes and PA.TradeSkillRecipes[self.professionID]
+        if recipes then
+            nextStepText:SetText("Recetas: " .. tostring(table.getn(recipes)))
+        elseif self.professionID then
+            nextStepText:SetText("Abre el libro para cargar recetas")
+        else
+            nextStepText:SetText("Selecciona una profesión")
+        end
     end
 
     function frame:ShowRecipeDetails(index)
