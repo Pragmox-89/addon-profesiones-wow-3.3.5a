@@ -57,6 +57,12 @@ function PA:ScanTradeSkill()
                 local reagentCount = GetTradeSkillNumReagents(index) or 0
                 for reagentIndex = 1, reagentCount do
                     local reagentName, reagentTexture, quantity, owned = GetTradeSkillReagentInfo(index, reagentIndex)
+                    local reagentLink = GetTradeSkillReagentItemLink and GetTradeSkillReagentItemLink(index, reagentIndex)
+                    if reagentLink then
+                        local reagentInfo = GetItemInfo and { GetItemInfo(reagentLink) } or nil
+                        reagentName = reagentName or GetLinkName(reagentLink) or (reagentInfo and reagentInfo[1])
+                        reagentTexture = reagentTexture or (reagentInfo and reagentInfo[10])
+                    end
                     if reagentName then
                         table.insert(recipe.materials, {
                             name = reagentName,
@@ -92,3 +98,5 @@ function PA:ScanTradeSkill()
 
     return true, table.getn(recipes)
 end
+
+
