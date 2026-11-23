@@ -54,7 +54,7 @@ function PA:CreateProfessionFrame()
     brandIcon:SetTexture("Interface\\Icons\\INV_Misc_Book_09")
 
     local professionText = CreateLabel(frame, "Selecciona una profesión", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 104, -61)
-    local skillLevelText = CreateLabel(frame, "Nivel actual: — / —", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 330, -61)
+    local skillLevelText = CreateLabel(frame, "Nivel actual: - / -", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 330, -61)
     local skillBar = CreateFrame("StatusBar", nil, frame)
     skillBar:SetSize(315, 14)
     skillBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 330, -82)
@@ -67,7 +67,7 @@ function PA:CreateProfessionFrame()
     skillBarBackground:SetTexture("Interface\\TargetingFrame\\UI-StatusBar")
     skillBarBackground:SetVertexColor(0.08, 0.08, 0.08, 0.9)
 
-    local nextStepText = CreateLabel(frame, "Recomendación: pendiente de recetas", "GameFontNormal", "TOPRIGHT", frame, "TOPRIGHT", -52, -61)
+    local nextStepText = CreateLabel(frame, "Abre el libro de profesión para cargar recetas", "GameFontNormal", "TOPRIGHT", frame, "TOPRIGHT", -52, -61)
 
     local left = CreateFrame("Frame", nil, frame)
     left:SetPoint("TOPLEFT", frame, "TOPLEFT", 270, -122)
@@ -259,7 +259,7 @@ function PA:CreateProfessionFrame()
             self.professionID = nil
             self.selectedRecipeKey = nil
             professionText:SetText("Selecciona una profesión")
-            skillLevelText:SetText("Nivel actual: — / —")
+            skillLevelText:SetText("Nivel actual: - / -")
             skillBar:SetMinMaxValues(0, 1)
             skillBar:SetValue(0)
             self:SetRecipeStatus("Selecciona una profesión aprendida.")
