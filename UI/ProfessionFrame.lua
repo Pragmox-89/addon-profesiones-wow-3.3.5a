@@ -112,6 +112,7 @@ function PA:CreateProfessionFrame()
         row:SetScript("OnClick", function(self)
             if self.recipeIndex then
                 frame:ShowRecipeDetails(self.recipeIndex)
+                frame:RefreshRecipes()
             end
         end)
         rows[i] = row
@@ -381,8 +382,15 @@ function PA:CreateProfessionFrame()
             local recipe = self.filteredRecipes[recipeIndex]
             if recipe then
                 row.recipeIndex = recipeIndex
-                row.text:SetText(recipe.name or "Receta sin nombre")
-                row.text:SetTextColor(GetDifficultyColor(recipe))
+                local recipeKey = recipe.key or recipe.name
+                local recipeName = recipe.name or "Receta sin nombre"
+                if recipeKey == self.selectedRecipeKey then
+                    row.text:SetText("» " .. recipeName)
+                    row.text:SetTextColor(1, 0.82, 0.1)
+                else
+                    row.text:SetText(recipeName)
+                    row.text:SetTextColor(GetDifficultyColor(recipe))
+                end
                 row:Show()
             else
                 row.recipeIndex = nil
