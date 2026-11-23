@@ -42,7 +42,7 @@ function PA:CreateProfessionFrame()
     })
     frame:SetBackdropColor(0.48, 0.43, 0.34, 0.98)
 
-    local title = CreateLabel(frame, "Profession Assistant  |cffaaaaaa" .. tostring(PA.VERSION or "0.8.0") .. "|r", "GameFontNormalLarge", "TOP", frame, "TOP", 0, -20)
+    local title = CreateLabel(frame, "Profession Assistant  |cffaaaaaa" .. tostring(PA.VERSION or "0.8.1") .. "|r", "GameFontNormalLarge", "TOP", frame, "TOP", 0, -20)
     title:SetJustifyH("CENTER")
 
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
