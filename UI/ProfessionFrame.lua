@@ -3,7 +3,7 @@ PA = PA or {}
 local WINDOW_WIDTH, WINDOW_HEIGHT = 1140, 720
 local WINDOW_SCALE = 1.30
 local ROW_HEIGHT, VISIBLE_ROWS = 34, 9
-local MATERIAL_ROW_HEIGHT, VISIBLE_MATERIAL_ROWS = 62, 3
+local MATERIAL_ROW_HEIGHT, VISIBLE_MATERIAL_ROWS = 62, 2
 
 local PROFESSION_ICONS = {
     ALCHEMY = "Interface\\Icons\\Trade_Alchemy",
@@ -288,11 +288,11 @@ function PA:CreateProfessionFrame()
     description:SetTextColor(PALE[1], PALE[2], PALE[3])
 
     local materialsTitle = CreateLabel(detailsPanel, "MATERIALES NECESARIOS", "GameFontNormal",
-        "TOPLEFT", detailsPanel, "TOPLEFT", 16, -181)
+        "TOPLEFT", detailsPanel, "TOPLEFT", 16, -171)
     materialsTitle:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
     local materialsScroll = CreateFrame("ScrollFrame", "ProfessionAssistantMaterialsScroll", detailsPanel, "FauxScrollFrameTemplate")
-    materialsScroll:SetPoint("TOPLEFT", detailsPanel, "TOPLEFT", 14, -207)
+    materialsScroll:SetPoint("TOPLEFT", detailsPanel, "TOPLEFT", 14, -198)
     materialsScroll:SetPoint("BOTTOMRIGHT", detailsPanel, "BOTTOMRIGHT", -30, 82)
 
     local materialCards = {}
