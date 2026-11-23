@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.8.1
+
+- Normaliza las rutas de los archivos Lua del `.toc` con separadores `\\`, como usa el cliente 3.3.5a.
+- Actualiza la versión visible a 0.8.1.
+
 ## 0.8.0
 
 - El arranque usa `PLAYER_LOGIN` para evitar depender del nombre del addon informado durante la carga.
