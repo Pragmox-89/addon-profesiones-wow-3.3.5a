@@ -1,19 +1,35 @@
 PA = PA or {}
 
-local ROW_HEIGHT = 26
-local VISIBLE_ROWS = 11
+local WINDOW_WIDTH, WINDOW_HEIGHT = 1140, 720
+local WINDOW_SCALE = 1.30
+local ROW_HEIGHT, VISIBLE_ROWS = 34, 9
+local MATERIAL_ROW_HEIGHT, VISIBLE_MATERIAL_ROWS = 62, 3
 
-local function GetDifficultyColor(recipe)
-    local difficulty = recipe.difficulty
-    if difficulty == "orange" then return 1, 0.35, 0.15 end
-    if difficulty == "yellow" then return 1, 0.85, 0.2 end
-    if difficulty == "green" then return 0.25, 1, 0.25 end
-    if difficulty == "gray" or difficulty == "grey" then return 0.65, 0.65, 0.65 end
-    return 1, 1, 1
-end
+local PROFESSION_ICONS = {
+    ALCHEMY = "Interface\\Icons\\Trade_Alchemy",
+    BLACKSMITHING = "Interface\\Icons\\Trade_BlackSmithing",
+    ENCHANTING = "Interface\\Icons\\Trade_Engraving",
+    ENGINEERING = "Interface\\Icons\\Trade_Engineering",
+    HERBALISM = "Interface\\Icons\\Trade_Herbalism",
+    INSCRIPTION = "Interface\\Icons\\INV_Inscription_Tradeskill01",
+    JEWELCRAFTING = "Interface\\Icons\\INV_Misc_Gem_01",
+    LEATHERWORKING = "Interface\\Icons\\INV_Misc_ArmorKit_17",
+    MINING = "Interface\\Icons\\Trade_Mining",
+    SKINNING = "Interface\\Icons\\INV_Misc_Pelt_Wolf_01",
+    TAILORING = "Interface\\Icons\\Trade_Tailoring",
+    COOKING = "Interface\\Icons\\INV_Misc_Food_15",
+    FIRST_AID = "Interface\\Icons\\Spell_Holy_SealOfSacrifice",
+    FISHING = "Interface\\Icons\\Trade_Fishing"
+}
+
+local GOLD = { 1, 0.78, 0.12 }
+local PALE = { 0.92, 0.88, 0.78 }
+local MUTED = { 0.63, 0.59, 0.50 }
+local GREEN = { 0.18, 0.95, 0.20 }
+local RED = { 1, 0.23, 0.12 }
 
 local function CreateLabel(parent, text, font, point, relative, relativePoint, x, y, width)
-    local label = parent:CreateFontString(nil, "OVERLAY", font or "GameFontHighlightSmall")
+    local label = parent:CreateFontString(nil, "OVERLAY", font or "GameFontHighlight")
     label:SetPoint(point, relative, relativePoint, x, y)
     if width then label:SetWidth(width) end
     label:SetJustifyH("LEFT")
@@ -21,93 +37,220 @@ local function CreateLabel(parent, text, font, point, relative, relativePoint, x
     return label
 end
 
+local function CreatePanel(parent, width, height)
+    local panel = CreateFrame("Frame", nil, parent)
+    if width then panel:SetWidth(width) end
+    if height then panel:SetHeight(height) end
+    panel:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tile = true, tileSize = 32, edgeSize = 16,
+        insets = { left = 5, right = 5, top = 5, bottom = 5 }
+    })
+    panel:SetBackdropColor(0.035, 0.028, 0.020, 0.96)
+    panel:SetBackdropBorderColor(0.72, 0.52, 0.23, 1)
+    return panel
+end
+
+local function GetDifficultyColor(recipe)
+    local difficulty = recipe and recipe.difficulty
+    if difficulty == "orange" then return 1, 0.34, 0.12 end
+    if difficulty == "yellow" then return 1, 0.82, 0.16 end
+    if difficulty == "green" then return 0.24, 0.95, 0.18 end
+    if difficulty == "gray" or difficulty == "grey" then return 0.62, 0.62, 0.62 end
+    return 0.92, 0.88, 0.78
+end
+
+local function GetDifficultyName(recipe)
+    local difficulty = recipe and recipe.difficulty
+    if difficulty == "orange" then return "Naranja" end
+    if difficulty == "yellow" then return "Amarilla" end
+    if difficulty == "green" then return "Verde" end
+    if difficulty == "gray" or difficulty == "grey" then return "Gris" end
+    return "No indicada"
+end
+
+local function GetProfessionByID(id)
+    for _, profession in ipairs(PA_ProfessionCatalog or {}) do
+        if profession.id == id then return profession end
+    end
+end
+
 function PA:CreateProfessionFrame()
     if self.frame then return self.frame end
 
-    local frame = CreateFrame("Frame", "ProfessionAssistantFrame", UIParent, "UIPanelDialogTemplate")
-    frame:SetWidth(960)
-    frame:SetHeight(620)
-    frame:SetPoint("CENTER")
+    local frame = CreateFrame("Frame", "ProfessionAssistantFrame", UIParent)
+    frame:SetWidth(WINDOW_WIDTH)
+    frame:SetHeight(WINDOW_HEIGHT)
+    frame:SetScale(WINDOW_SCALE)
+    frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     frame:SetFrameStrata("DIALOG")
     frame:SetMovable(true)
     frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
     frame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
-    frame:Hide()
     frame:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        tile = true, tileSize = 32,
-        insets = { left = 18, right = 18, top = 18, bottom = 18 }
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        tile = true, tileSize = 32, edgeSize = 32,
+        insets = { left = 14, right = 14, top = 14, bottom = 14 }
     })
-    frame:SetBackdropColor(0.48, 0.43, 0.34, 0.98)
+    frame:SetBackdropColor(0.055, 0.047, 0.035, 0.99)
+    frame:SetBackdropBorderColor(0.88, 0.68, 0.31, 1)
+    frame:Hide()
 
-    local title = CreateLabel(frame, "Profession Assistant  |cffaaaaaa" .. tostring(PA.VERSION or "0.8.1") .. "|r", "GameFontNormalLarge", "TOP", frame, "TOP", 0, -20)
+    local headerBand = CreatePanel(frame)
+    headerBand:SetPoint("TOPLEFT", frame, "TOPLEFT", 128, -14)
+    headerBand:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -46, -14)
+    headerBand:SetHeight(54)
+    headerBand:SetBackdropColor(0.025, 0.022, 0.018, 0.98)
+    local title = CreateLabel(headerBand,
+        "Profession Assistant  |cffffcc00" .. tostring(PA.VERSION or "0.8.2") .. "|r",
+        "GameFontNormalLarge", "CENTER", headerBand, "CENTER", 0, 0)
     title:SetJustifyH("CENTER")
 
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    close:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -6, -6)
+    close:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -12)
+    close:SetScript("OnClick", function() frame:Hide() end)
 
-    local brandIcon = frame:CreateTexture(nil, "ARTWORK")
-    brandIcon:SetSize(52, 52)
-    brandIcon:SetPoint("TOPLEFT", frame, "TOPLEFT", 25, -30)
+    local brandFrame = CreatePanel(frame, 108, 108)
+    brandFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 18, -26)
+    brandFrame:SetBackdropBorderColor(0.98, 0.70, 0.22, 1)
+    local brandIcon = brandFrame:CreateTexture(nil, "ARTWORK")
+    brandIcon:SetSize(80, 80)
+    brandIcon:SetPoint("CENTER", brandFrame, "CENTER")
     brandIcon:SetTexture("Interface\\Icons\\INV_Misc_Book_09")
+    brandIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
-    local professionText = CreateLabel(frame, "Selecciona una profesión", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 104, -61)
-    local skillLevelText = CreateLabel(frame, "Nivel actual: - / -", "GameFontNormal", "TOPLEFT", frame, "TOPLEFT", 330, -61)
+    local professionText = CreateLabel(frame, "Profesiones", "GameFontNormalLarge",
+        "TOPLEFT", frame, "TOPLEFT", 148, -89, 230)
+    professionText:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+
+    local skillLevelText = CreateLabel(frame, "Nivel actual: - / -", "GameFontNormal",
+        "TOPLEFT", frame, "TOPLEFT", 392, -79, 300)
     local skillBar = CreateFrame("StatusBar", nil, frame)
-    skillBar:SetSize(315, 14)
-    skillBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 330, -82)
+    skillBar:SetSize(390, 18)
+    skillBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 392, -111)
     skillBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
-    skillBar:SetStatusBarColor(0.1, 0.8, 0.12)
+    skillBar:SetStatusBarColor(0.08, 0.82, 0.10)
     skillBar:SetMinMaxValues(0, 1)
     skillBar:SetValue(0)
     local skillBarBackground = skillBar:CreateTexture(nil, "BACKGROUND")
     skillBarBackground:SetAllPoints(skillBar)
     skillBarBackground:SetTexture("Interface\\TargetingFrame\\UI-StatusBar")
-    skillBarBackground:SetVertexColor(0.08, 0.08, 0.08, 0.9)
+    skillBarBackground:SetVertexColor(0.035, 0.035, 0.035, 1)
 
-    local nextStepText = CreateLabel(frame, "Abre el libro de profesión para cargar recetas", "GameFontNormal", "TOPRIGHT", frame, "TOPRIGHT", -52, -61)
+    local nextStepText = CreateLabel(frame, "Abre el libro de profesión para cargar recetas",
+        "GameFontNormal", "TOPRIGHT", frame, "TOPRIGHT", -44, -83, 360)
+    nextStepText:SetJustifyH("RIGHT")
+    nextStepText:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
-    local left = CreateFrame("Frame", nil, frame)
-    left:SetPoint("TOPLEFT", frame, "TOPLEFT", 270, -122)
-    left:SetWidth(290)
-    left:SetHeight(390)
-    left:SetBackdrop({
-        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 }
-    })
-    left:SetBackdropColor(0.04, 0.04, 0.04, 0.8)
+    local professionPanel = CreatePanel(frame, 324, 404)
+    professionPanel:SetPoint("TOPLEFT", frame, "TOPLEFT", 26, -148)
+    local recipesPanel = CreatePanel(frame, 324, 404)
+    recipesPanel:SetPoint("TOPLEFT", professionPanel, "TOPRIGHT", 12, 0)
+    local detailsPanel = CreatePanel(frame, 428, 404)
+    detailsPanel:SetPoint("TOPLEFT", recipesPanel, "TOPRIGHT", 12, 0)
 
-    CreateLabel(left, "Recetas", "GameFontNormal", "TOPLEFT", left, "TOPLEFT", 12, -10)
+    local professionHeader = CreateLabel(professionPanel, "Profesiones", "GameFontNormalLarge",
+        "TOPLEFT", professionPanel, "TOPLEFT", 16, -14)
+    professionHeader:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
-    local search = CreateFrame("EditBox", nil, left, "InputBoxTemplate")
-    search:SetSize(150, 20)
-    search:SetPoint("TOPRIGHT", left, "TOPRIGHT", -14, -7)
+    local primaryHeader = CreateLabel(professionPanel, "PROFESIONES PRIMARIAS", "GameFontNormal",
+        "TOPLEFT", professionPanel, "TOPLEFT", 16, -50)
+    primaryHeader:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+    local primaryRule = professionPanel:CreateTexture(nil, "ARTWORK")
+    primaryRule:SetTexture("Interface\\Buttons\\WHITE8X8")
+    primaryRule:SetVertexColor(0.50, 0.34, 0.12, 0.9)
+    primaryRule:SetPoint("TOPLEFT", professionPanel, "TOPLEFT", 16, -72)
+    primaryRule:SetSize(286, 1)
+
+    local secondaryHeader = CreateLabel(professionPanel, "PROFESIONES SECUNDARIAS", "GameFontNormal",
+        "TOPLEFT", professionPanel, "TOPLEFT", 16, -190)
+    secondaryHeader:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+    local secondaryRule = professionPanel:CreateTexture(nil, "ARTWORK")
+    secondaryRule:SetTexture("Interface\\Buttons\\WHITE8X8")
+    secondaryRule:SetVertexColor(0.50, 0.34, 0.12, 0.9)
+    secondaryRule:SetPoint("TOPLEFT", professionPanel, "TOPLEFT", 16, -212)
+    secondaryRule:SetSize(286, 1)
+
+    local primaryEmpty = CreateLabel(professionPanel, "No hay profesiones aprendidas.",
+        "GameFontHighlight", "TOPLEFT", professionPanel, "TOPLEFT", 22, -91, 280)
+    primaryEmpty:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+    local secondaryEmpty = CreateLabel(professionPanel, "No hay profesiones aprendidas.",
+        "GameFontHighlight", "TOPLEFT", professionPanel, "TOPLEFT", 22, -231, 280)
+    secondaryEmpty:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+
+    local professionButtons = {}
+    local function CreateProfessionButton(profession)
+        local button = CreateFrame("Button", nil, professionPanel)
+        button:SetSize(288, 48)
+        button:SetBackdrop({
+            bgFile = "Interface\\Buttons\\WHITE8X8",
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            tile = true, tileSize = 16, edgeSize = 10,
+            insets = { left = 3, right = 3, top = 3, bottom = 3 }
+        })
+        button:SetBackdropColor(0.035, 0.030, 0.025, 0.98)
+        button:SetBackdropBorderColor(0.43, 0.35, 0.21, 1)
+        button.icon = button:CreateTexture(nil, "ARTWORK")
+        button.icon:SetSize(38, 38)
+        button.icon:SetPoint("LEFT", button, "LEFT", 7, 0)
+        button.icon:SetTexture(PROFESSION_ICONS[profession.id] or "Interface\\Icons\\INV_Misc_QuestionMark")
+        button.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        button.name = CreateLabel(button, profession.name, "GameFontNormal",
+            "LEFT", button.icon, "RIGHT", 8, 0, 168)
+        button.rank = CreateLabel(button, "", "GameFontHighlight",
+            "RIGHT", button, "RIGHT", -10, 0, 70)
+        button:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+        button:SetScript("OnClick", function() frame:SelectProfession(profession.id) end)
+        button:Hide()
+        professionButtons[profession.id] = button
+    end
+    for _, profession in ipairs(PA_ProfessionCatalog or {}) do CreateProfessionButton(profession) end
+
+    local recipesHeader = CreateLabel(recipesPanel, "Recetas", "GameFontNormalLarge",
+        "TOPLEFT", recipesPanel, "TOPLEFT", 16, -14)
+    recipesHeader:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+    local recipeCountText = CreateLabel(recipesPanel, "", "GameFontHighlightSmall",
+        "TOPRIGHT", recipesPanel, "TOPRIGHT", -14, -19, 120)
+    recipeCountText:SetJustifyH("RIGHT")
+    recipeCountText:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+
+    local search = CreateFrame("EditBox", nil, recipesPanel, "InputBoxTemplate")
+    search:SetSize(276, 24)
+    search:SetPoint("TOPLEFT", recipesPanel, "TOPLEFT", 18, -47)
     search:SetAutoFocus(false)
     search:SetText("")
     search:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
     search:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
 
-    local searchHint = CreateLabel(left, "Buscar:", "GameFontDisableSmall", "RIGHT", search, "LEFT", -8, 0)
-
-    local scroll = CreateFrame("ScrollFrame", "ProfessionAssistantRecipeScroll", left, "FauxScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", left, "TOPLEFT", 8, -38)
-    scroll:SetPoint("BOTTOMRIGHT", left, "BOTTOMRIGHT", -28, 10)
+    local scroll = CreateFrame("ScrollFrame", "ProfessionAssistantRecipeScroll", recipesPanel, "FauxScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", recipesPanel, "TOPLEFT", 14, -80)
+    scroll:SetPoint("BOTTOMRIGHT", recipesPanel, "BOTTOMRIGHT", -30, 14)
 
     local rows = {}
     for i = 1, VISIBLE_ROWS do
-        local row = CreateFrame("Button", nil, left)
+        local row = CreateFrame("Button", nil, recipesPanel)
         row:SetHeight(ROW_HEIGHT)
         row:SetPoint("TOPLEFT", scroll, "TOPLEFT", 0, -((i - 1) * ROW_HEIGHT))
         row:SetPoint("TOPRIGHT", scroll, "TOPRIGHT", 0, -((i - 1) * ROW_HEIGHT))
+        row.background = row:CreateTexture(nil, "BACKGROUND")
+        row.background:SetAllPoints(row)
+        row.background:SetTexture("Interface\\Buttons\\WHITE8X8")
+        row.background:SetVertexColor(0.025, 0.022, 0.018, 0.72)
+        row.selectedBackground = row:CreateTexture(nil, "BORDER")
+        row.selectedBackground:SetAllPoints(row)
+        row.selectedBackground:SetTexture("Interface\\Buttons\\WHITE8X8")
+        row.selectedBackground:SetVertexColor(0.66, 0.42, 0.07, 0.48)
+        row.selectedBackground:Hide()
         row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-        row.text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        row.text:SetPoint("LEFT", row, "LEFT", 7, 0)
-        row.text:SetJustifyH("LEFT")
-        row.text:SetWidth(270)
+        row.marker = row:CreateTexture(nil, "ARTWORK")
+        row.marker:SetSize(18, 18)
+        row.marker:SetPoint("LEFT", row, "LEFT", 5, 0)
+        row.marker:SetTexture("Interface\\Buttons\\WHITE8X8")
+        row.text = CreateLabel(row, "", "GameFontHighlight", "LEFT", row.marker, "RIGHT", 7, 0, 250)
         row.recipeIndex = nil
         row:SetScript("OnClick", function(self)
             if self.recipeIndex then
@@ -118,97 +261,133 @@ function PA:CreateProfessionFrame()
         rows[i] = row
     end
 
-    local right = CreateFrame("Frame", nil, frame)
-    right:SetPoint("TOPLEFT", left, "TOPRIGHT", 14, 0)
-    right:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -24, 115)
-    right:SetBackdrop({
-        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 }
-    })
-    right:SetBackdropColor(0.04, 0.04, 0.04, 0.8)
+    local detailsHeader = CreateLabel(detailsPanel, "Detalles de receta", "GameFontNormalLarge",
+        "TOPLEFT", detailsPanel, "TOPLEFT", 16, -14)
+    detailsHeader:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
-    CreateLabel(right, "Detalles de receta", "GameFontNormal", "TOPLEFT", right, "TOPLEFT", 14, -12)
-    right.recipeName = CreateLabel(right, "Selecciona una receta", "GameFontNormalLarge", "TOPLEFT", right, "TOPLEFT", 14, -40, 340)
-    right.recipeResult = CreateLabel(right, "", "GameFontHighlightSmall", "TOPLEFT", right.recipeName, "BOTTOMLEFT", 0, -6, 340)
-    right.skill = CreateLabel(right, "", "GameFontHighlightSmall", "TOPLEFT", right.recipeResult, "BOTTOMLEFT", 0, -6, 340)
-    right.description = CreateLabel(right, "Los materiales y requisitos aparecerán aquí.", "GameFontHighlightSmall", "TOPLEFT", right.skill, "BOTTOMLEFT", 0, -12, 340)
-    right.materialsTitle = CreateLabel(right, "", "GameFontNormal", "TOPLEFT", right.description, "BOTTOMLEFT", 0, -18)
-    right.materials = CreateLabel(right, "", "GameFontHighlightSmall", "TOPLEFT", right.materialsTitle, "BOTTOMLEFT", 0, -8, 340)
+    local resultIconFrame = CreatePanel(detailsPanel, 92, 92)
+    resultIconFrame:SetPoint("TOPLEFT", detailsPanel, "TOPLEFT", 16, -48)
+    resultIconFrame:SetBackdropBorderColor(0.98, 0.72, 0.24, 1)
+    local resultIcon = resultIconFrame:CreateTexture(nil, "ARTWORK")
+    resultIcon:SetSize(72, 72)
+    resultIcon:SetPoint("CENTER", resultIconFrame, "CENTER")
+    resultIcon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    resultIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
-    local recommendation = CreateFrame("Frame", nil, frame)
-    recommendation:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 30, 25)
-    recommendation:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -155, 25)
-    recommendation:SetHeight(60)
-    recommendation:SetBackdrop({
-        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 }
-    })
-    recommendation:SetBackdropColor(0.08, 0.06, 0.02, 0.85)
-    CreateLabel(recommendation, "Recomendación", "GameFontNormal", "TOPLEFT", recommendation, "TOPLEFT", 12, -9)
-    recommendation.text = CreateLabel(recommendation, "Las recetas conocidas se cargarán al abrir su libro de profesión.", "GameFontHighlightSmall", "TOPLEFT", recommendation, "TOPLEFT", 12, -30, 700)
+    local recipeName = CreateLabel(detailsPanel, "Selecciona una receta", "GameFontNormalLarge",
+        "TOPLEFT", resultIconFrame, "TOPRIGHT", 12, -7, 292)
+    recipeName:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+    local recipeResult = CreateLabel(detailsPanel, "", "GameFontHighlight",
+        "TOPLEFT", recipeName, "BOTTOMLEFT", 0, -7, 292)
+    local recipeSkill = CreateLabel(detailsPanel, "", "GameFontHighlightSmall",
+        "TOPLEFT", recipeResult, "BOTTOMLEFT", 0, -7, 292)
+    recipeSkill:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+    local description = CreateLabel(detailsPanel,
+        "Elige una receta para consultar su resultado y materiales.",
+        "GameFontHighlight", "TOPLEFT", resultIconFrame, "BOTTOMLEFT", 0, -12, 384)
+    description:SetTextColor(PALE[1], PALE[2], PALE[3])
 
-    local selectionPanel = CreateFrame("Frame", nil, frame)
-    selectionPanel:SetPoint("TOPLEFT", frame, "TOPLEFT", 30, -122)
-    selectionPanel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 30, 90)
-    selectionPanel:SetWidth(210)
+    local materialsTitle = CreateLabel(detailsPanel, "MATERIALES NECESARIOS", "GameFontNormal",
+        "TOPLEFT", detailsPanel, "TOPLEFT", 16, -181)
+    materialsTitle:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
-    local primaryPanel = CreateFrame("Frame", nil, selectionPanel)
-    primaryPanel:SetPoint("TOPLEFT", selectionPanel, "TOPLEFT", 0, 0)
-    primaryPanel:SetWidth(210)
-    primaryPanel:SetHeight(180)
-    primaryPanel:SetBackdrop({
-        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 }
-    })
-    primaryPanel:SetBackdropColor(0.04, 0.04, 0.04, 0.8)
-    CreateLabel(primaryPanel, "Profesiones primarias", "GameFontNormal", "TOPLEFT", primaryPanel, "TOPLEFT", 16, -14)
+    local materialsScroll = CreateFrame("ScrollFrame", "ProfessionAssistantMaterialsScroll", detailsPanel, "FauxScrollFrameTemplate")
+    materialsScroll:SetPoint("TOPLEFT", detailsPanel, "TOPLEFT", 14, -207)
+    materialsScroll:SetPoint("BOTTOMRIGHT", detailsPanel, "BOTTOMRIGHT", -30, 82)
 
-    local secondaryPanel = CreateFrame("Frame", nil, selectionPanel)
-    secondaryPanel:SetPoint("TOPLEFT", primaryPanel, "BOTTOMLEFT", 0, -8)
-    secondaryPanel:SetPoint("BOTTOMRIGHT", selectionPanel, "BOTTOMRIGHT", 0, 0)
-    secondaryPanel:SetBackdrop({
-        bgFile = "Interface\\ChatFrame\\ChatFrameBackground",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 }
-    })
-    secondaryPanel:SetBackdropColor(0.04, 0.04, 0.04, 0.8)
-    CreateLabel(secondaryPanel, "Profesiones secundarias", "GameFontNormal", "TOPLEFT", secondaryPanel, "TOPLEFT", 14, -14)
-
-    local professionButtons = {}
-    local primaryEmpty = CreateLabel(primaryPanel, "No hay profesiones aprendidas.", "GameFontHighlightSmall", "TOPLEFT", primaryPanel, "TOPLEFT", 18, -48)
-    local secondaryEmpty = CreateLabel(secondaryPanel, "No hay profesiones aprendidas.", "GameFontHighlightSmall", "TOPLEFT", secondaryPanel, "TOPLEFT", 14, -48)
-
-    local function CreateProfessionButton(profession)
-        local parent = profession.category == "PRIMARY" and primaryPanel or secondaryPanel
-        local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-        button:SetSize(174, 28)
-        button:SetText(profession.name)
-        button:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-        button:SetScript("OnClick", function()
-            frame:SelectProfession(profession.id)
-        end)
-        button:Hide()
-        professionButtons[profession.id] = button
+    local materialCards = {}
+    local function CreateMaterialCard(parent, index)
+        local card = CreatePanel(parent, 180, 56)
+        card.icon = card:CreateTexture(nil, "ARTWORK")
+        card.icon:SetSize(38, 38)
+        card.icon:SetPoint("LEFT", card, "LEFT", 5, 0)
+        card.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+        card.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        card.name = CreateLabel(card, "", "GameFontHighlightSmall",
+            "TOPLEFT", card.icon, "TOPRIGHT", 5, -2, 126)
+        card.count = CreateLabel(card, "", "GameFontNormal",
+            "BOTTOMLEFT", card.icon, "BOTTOMRIGHT", 5, 1, 126)
+        materialCards[index] = card
+        return card
+    end
+    for i = 1, VISIBLE_MATERIAL_ROWS * 2 do
+        local card = CreateMaterialCard(materialsScroll, i)
+        local col = (i - 1) % 2
+        local row = math.floor((i - 1) / 2)
+        card:SetPoint("TOPLEFT", materialsScroll, "TOPLEFT", col * 184, -row * MATERIAL_ROW_HEIGHT)
     end
 
-    for _, profession in ipairs(PA_ProfessionCatalog) do
-        CreateProfessionButton(profession)
-    end
+    local infoPanel = CreatePanel(detailsPanel)
+    infoPanel:SetPoint("BOTTOMLEFT", detailsPanel, "BOTTOMLEFT", 14, 12)
+    infoPanel:SetPoint("BOTTOMRIGHT", detailsPanel, "BOTTOMRIGHT", -14, 12)
+    infoPanel:SetHeight(58)
+    local infoHeader = CreateLabel(infoPanel, "FABRICACIÓN", "GameFontNormalSmall",
+        "TOPLEFT", infoPanel, "TOPLEFT", 10, -8)
+    infoHeader:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+    local infoText = CreateLabel(infoPanel, "Selecciona una receta.", "GameFontHighlight",
+        "TOPLEFT", infoPanel, "TOPLEFT", 10, -30, 356)
 
+    local filtersPanel = CreatePanel(frame, 1092, 58)
+    filtersPanel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 78)
+    local filtersTitle = CreateLabel(filtersPanel, "FILTROS", "GameFontNormalLarge",
+        "LEFT", filtersPanel, "LEFT", 14, 0)
+    filtersTitle:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+
+    local craftableOnly = false
+    local craftableButton = CreateFrame("Button", nil, filtersPanel)
+    craftableButton:SetSize(210, 34)
+    craftableButton:SetPoint("LEFT", filtersTitle, "RIGHT", 18, 0)
+    craftableButton.box = CreatePanel(craftableButton, 24, 24)
+    craftableButton.box:SetPoint("LEFT", craftableButton, "LEFT", 0, 0)
+    craftableButton.check = craftableButton.box:CreateTexture(nil, "ARTWORK")
+    craftableButton.check:SetAllPoints(craftableButton.box)
+    craftableButton.check:SetTexture("Interface\\Buttons\\WHITE8X8")
+    craftableButton.check:SetVertexColor(0.15, 0.85, 0.12, 1)
+    craftableButton.check:Hide()
+    craftableButton.label = CreateLabel(craftableButton, "Solo fabricables", "GameFontHighlight",
+        "LEFT", craftableButton.box, "RIGHT", 8, 0, 160)
+    craftableButton:SetScript("OnClick", function()
+        craftableOnly = not craftableOnly
+        if craftableOnly then craftableButton.check:Show() else craftableButton.check:Hide() end
+        frame:RefreshRecipes()
+    end)
+
+    local statusPanel = CreatePanel(frame)
+    statusPanel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 18)
+    statusPanel:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -166, 18)
+    statusPanel:SetHeight(48)
+    local statusIcon = statusPanel:CreateTexture(nil, "ARTWORK")
+    statusIcon:SetSize(28, 28)
+    statusIcon:SetPoint("LEFT", statusPanel, "LEFT", 12, 0)
+    statusIcon:SetTexture("Interface\\Icons\\INV_Misc_Note_01")
+    local statusText = CreateLabel(statusPanel, "¡Listo! Abre un libro de profesión para leer sus recetas.",
+        "GameFontNormal", "LEFT", statusIcon, "RIGHT", 10, 0, 850)
+    statusText:SetTextColor(PALE[1], PALE[2], PALE[3])
+
+    local closeButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    closeButton:SetSize(138, 38)
+    closeButton:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -28, 22)
+    closeButton:SetText("Cerrar")
+    closeButton:SetScript("OnClick", function() frame:Hide() end)
 
     frame.professionID = nil
     frame.filteredRecipes = {}
-    frame.allRecipes = {}
     frame.knownProfessions = {}
     frame.selectedRecipeKey = nil
     frame.lastSearch = ""
+    frame.materialCards = materialCards
+
+    function frame:SetRecipeStatus(message)
+        statusText:SetText(message or "")
+        local recipes = PA.TradeSkillRecipes and PA.TradeSkillRecipes[self.professionID]
+        if recipes then
+            nextStepText:SetText("Recetas: " .. tostring(table.getn(recipes)))
+        elseif self.professionID then
+            nextStepText:SetText("Abre el libro de profesión para cargar recetas")
+        else
+            nextStepText:SetText("Selecciona una profesión aprendida")
+        end
+    end
 
     function frame:RefreshProfessionSelection()
         self.knownProfessions = {}
@@ -225,29 +404,25 @@ function PA:CreateProfessionFrame()
         end
 
         local primaryIndex, secondaryIndex = 0, 0
-        for _, profession in ipairs(PA_ProfessionCatalog) do
+        for _, profession in ipairs(PA_ProfessionCatalog or {}) do
             local button = professionButtons[profession.id]
             button:Hide()
-            if self.knownProfessions[profession.id] then
-                local skill = self.knownProfessions[profession.id]
-                button:SetText(profession.name .. "  (" .. tostring(skill.rank) .. "/" .. tostring(skill.maxRank) .. ")")
-                local fontString = button:GetFontString()
-                if fontString then
-                    if profession.id == self.professionID then
-                        fontString:SetTextColor(1, 0.82, 0.1)
-                    else
-                        fontString:SetTextColor(0.92, 0.92, 0.92)
-                    end
-                end
+            local skill = self.knownProfessions[profession.id]
+            if skill then
+                button.rank:SetText("(" .. tostring(skill.rank) .. "/" .. tostring(skill.maxRank) .. ")")
                 if profession.category == "PRIMARY" then
                     button:ClearAllPoints()
-                    button:SetPoint("TOPLEFT", primaryPanel, "TOPLEFT", 18, -42 - primaryIndex * 32)
+                    button:SetPoint("TOPLEFT", professionPanel, "TOPLEFT", 16, -80 - primaryIndex * 52)
                     primaryIndex = primaryIndex + 1
                 else
                     button:ClearAllPoints()
-                    button:SetPoint("TOPLEFT", secondaryPanel, "TOPLEFT", 18, -42 - secondaryIndex * 32)
+                    button:SetPoint("TOPLEFT", professionPanel, "TOPLEFT", 16, -220 - secondaryIndex * 52)
                     secondaryIndex = secondaryIndex + 1
                 end
+                local active = profession.id == self.professionID
+                button:SetBackdropColor(active and 0.30 or 0.035, active and 0.20 or 0.030, active and 0.055 or 0.025, 0.98)
+                button:SetBackdropBorderColor(active and 1 or 0.43, active and 0.72 or 0.35, active and 0.16 or 0.21, 1)
+                button.name:SetTextColor(active and GOLD[1] or PALE[1], active and GOLD[2] or PALE[2], active and GOLD[3] or PALE[3])
                 button:Show()
             end
         end
@@ -258,122 +433,104 @@ function PA:CreateProfessionFrame()
         if self.professionID and not self.knownProfessions[self.professionID] then
             self.professionID = nil
             self.selectedRecipeKey = nil
-            professionText:SetText("Selecciona una profesión")
-            skillLevelText:SetText("Nivel actual: - / -")
-            skillBar:SetMinMaxValues(0, 1)
-            skillBar:SetValue(0)
-            self:SetRecipeStatus("Selecciona una profesión aprendida.")
             self:RefreshRecipes()
         elseif self.professionID and self.knownProfessions[self.professionID] then
+            local profession = GetProfessionByID(self.professionID)
             local skill = self.knownProfessions[self.professionID]
+            professionText:SetText(profession and profession.name or "Profesiones")
             skillLevelText:SetText("Nivel actual: " .. tostring(skill.rank) .. " / " .. tostring(skill.maxRank))
             skillBar:SetMinMaxValues(0, skill.maxRank > 0 and skill.maxRank or 1)
             skillBar:SetValue(skill.rank)
         end
     end
 
-    function frame:ShowProfessionSelection()
-        self:RefreshProfessionSelection()
-        selectionPanel:Show()
-    end
-
     function frame:SelectProfession(id)
-        local selected
-        for _, profession in ipairs(PA_ProfessionCatalog) do
-            if profession.id == id then
-                selected = profession
-                break
-            end
-        end
-        if not selected or not self.knownProfessions[selected.id] then return end
-
-        self.professionID = selected.id
+        local selected = GetProfessionByID(id)
+        if not selected or not self.knownProfessions[id] then return end
+        self.professionID = id
         self.selectedRecipeKey = nil
-        local skill = self.knownProfessions[selected.id]
+        local skill = self.knownProfessions[id]
         professionText:SetText(selected.name)
+        brandIcon:SetTexture(PROFESSION_ICONS[id] or "Interface\\Icons\\INV_Misc_Book_09")
         skillLevelText:SetText("Nivel actual: " .. tostring(skill.rank) .. " / " .. tostring(skill.maxRank))
         skillBar:SetMinMaxValues(0, skill.maxRank > 0 and skill.maxRank or 1)
         skillBar:SetValue(skill.rank)
-        local knownRecipes = PA.TradeSkillRecipes and PA.TradeSkillRecipes[selected.id]
-        local recipeCount = knownRecipes and table.getn(knownRecipes) or 0
-        self:SetRecipeStatus(recipeCount > 0 and ("Recetas conocidas cargadas: " .. tostring(recipeCount)) or "Abre el libro de profesión para importar tus recetas conocidas.")
-        for professionID, button in pairs(professionButtons) do
-            local fontString = button:GetFontString()
-            if fontString then
-                if professionID == selected.id then fontString:SetTextColor(1, 0.82, 0.1) else fontString:SetTextColor(0.92, 0.92, 0.92) end
-            end
-        end
         search:SetText("")
+        self.lastSearch = ""
+        self:RefreshProfessionSelection()
+        local recipes = PA.TradeSkillRecipes and PA.TradeSkillRecipes[id]
+        self:SetRecipeStatus(recipes and table.getn(recipes) > 0
+            and ("Recetas conocidas leídas del libro: " .. tostring(table.getn(recipes)))
+            or "Abre el libro nativo para importar tus recetas conocidas.")
         self:RefreshRecipes()
-    end
-
-    function frame:SetRecipeStatus(message)
-        recommendation.text:SetText(message or "")
-        local recipes = PA.TradeSkillRecipes and PA.TradeSkillRecipes[self.professionID]
-        if recipes then
-            nextStepText:SetText("Recetas: " .. tostring(table.getn(recipes)))
-        elseif self.professionID then
-            nextStepText:SetText("Abre el libro para cargar recetas")
-        else
-            nextStepText:SetText("Selecciona una profesión")
-        end
     end
 
     function frame:ShowRecipeDetails(index)
         local recipe = self.filteredRecipes[index]
         if not recipe then return end
         self.selectedRecipeKey = recipe.key or recipe.name
-        right.recipeName:SetText(recipe.name or "Receta sin nombre")
-        right.recipeResult:SetText("Resultado: " .. tostring(recipe.result or recipe.name or "No indicado"))
-        local skillText = ""
-        if recipe.skill then skillText = "Habilidad: " .. tostring(recipe.skill) end
-        if recipe.requiredSkill then
-            if skillText ~= "" then skillText = skillText .. "  |  " end
-            skillText = skillText .. "Requiere: " .. tostring(recipe.requiredSkill)
-        end
-        if recipe.craftableCount ~= nil then
-            if skillText ~= "" then skillText = skillText .. "  |  " end
-            skillText = skillText .. "Fabricables ahora: " .. tostring(recipe.craftableCount)
-        end
-        right.skill:SetText(skillText)
-        right.description:SetText(recipe.description or "")
-        right.materialsTitle:SetText("Materiales necesarios")
-        local lines = {}
-        if recipe.materials then
-            for _, material in ipairs(recipe.materials) do
-                local amount = material.count or material.quantity or 1
-                local owned = material.owned
-                local ownedText = owned ~= nil and ("  (" .. tostring(owned) .. " disponibles)") or ""
-                table.insert(lines, tostring(amount) .. " x " .. tostring(material.name or "Material") .. ownedText)
+        recipeName:SetText(recipe.name or "Receta sin nombre")
+        recipeResult:SetText("Resultado: " .. tostring(recipe.result or recipe.name or "No indicado"))
+        local skillLine = "Dificultad: " .. GetDifficultyName(recipe)
+        if recipe.requiredSkill then skillLine = skillLine .. "  |  Requiere: " .. tostring(recipe.requiredSkill) end
+        recipeSkill:SetText(skillLine)
+        description:SetText(recipe.description or "Dato leído del libro de profesión de este personaje.")
+        resultIcon:SetTexture(recipe.resultTexture or "Interface\\Icons\\INV_Misc_QuestionMark")
+
+        local materials = recipe.materials or {}
+        local count = table.getn(materials)
+        FauxScrollFrame_Update(materialsScroll, math.ceil(count / 2), VISIBLE_MATERIAL_ROWS, MATERIAL_ROW_HEIGHT)
+        local offset = FauxScrollFrame_GetOffset(materialsScroll)
+        for i = 1, VISIBLE_MATERIAL_ROWS * 2 do
+            local card = materialCards[i]
+            local materialIndex = offset * 2 + i
+            local material = materials[materialIndex]
+            if material then
+                card.icon:SetTexture(material.texture or "Interface\\Icons\\INV_Misc_QuestionMark")
+                card.name:SetText(material.name or "Material")
+                local needed = tonumber(material.count or material.quantity) or 1
+                local owned = tonumber(material.owned)
+                if owned then
+                    card.count:SetText(tostring(owned) .. " / " .. tostring(needed))
+                    if owned >= needed then
+                        card.count:SetTextColor(GREEN[1], GREEN[2], GREEN[3])
+                    else
+                        card.count:SetTextColor(RED[1], RED[2], RED[3])
+                    end
+                else
+                    card.count:SetText(tostring(needed) .. " necesarios")
+                    card.count:SetTextColor(PALE[1], PALE[2], PALE[3])
+                end
+                card:Show()
+            else
+                card:Hide()
             end
         end
-        if table.getn(lines) == 0 then
-            right.materials:SetText("No hay materiales registrados para esta receta.")
+
+        local available = tonumber(recipe.craftableCount)
+        if available then
+            infoText:SetText("Fabricables ahora: |c" .. (available > 0 and "ff33ee33" or "ffff331f") .. tostring(available) .. "|r")
         else
-            right.materials:SetText(table.concat(lines, "\n"))
+            infoText:SetText("Cantidad fabricable no indicada por el libro.")
         end
     end
 
     function frame:RefreshRecipes()
         local profession = PA:GetProfession(self.professionID)
         local imported = PA.TradeSkillRecipes and PA.TradeSkillRecipes[self.professionID]
-        local recipes
-        if imported and table.getn(imported) > 0 then
-            recipes = imported
-        else
-            recipes = (profession and profession.recipes) or {}
-        end
-
+        local recipes = imported and table.getn(imported) > 0 and imported or ((profession and profession.recipes) or {})
         local query = PA:NormalizeSkillName(search:GetText() or "")
         self.filteredRecipes = {}
+
         for _, recipe in ipairs(recipes) do
-            local normalizedName = PA:NormalizeSkillName(recipe.name or "")
-            if query == "" or string.find(normalizedName, query, 1, true) then
-                table.insert(self.filteredRecipes, recipe)
-            end
+            local normalized = PA:NormalizeSkillName(recipe.name or "")
+            local matchesText = query == "" or string.find(normalized, query, 1, true)
+            local matchesCraftable = not craftableOnly or (tonumber(recipe.craftableCount) or 0) > 0
+            if matchesText and matchesCraftable then table.insert(self.filteredRecipes, recipe) end
         end
 
         local total = table.getn(self.filteredRecipes)
+        recipeCountText:SetText(tostring(total) .. " conocidas")
         FauxScrollFrame_Update(scroll, total, VISIBLE_ROWS, ROW_HEIGHT)
         local offset = FauxScrollFrame_GetOffset(scroll)
         for i = 1, VISIBLE_ROWS do
@@ -381,15 +538,16 @@ function PA:CreateProfessionFrame()
             local row = rows[i]
             local recipe = self.filteredRecipes[recipeIndex]
             if recipe then
+                local r, g, b = GetDifficultyColor(recipe)
                 row.recipeIndex = recipeIndex
-                local recipeKey = recipe.key or recipe.name
-                local recipeName = recipe.name or "Receta sin nombre"
-                if recipeKey == self.selectedRecipeKey then
-                    row.text:SetText("» " .. recipeName)
-                    row.text:SetTextColor(1, 0.82, 0.1)
+                row.marker:SetVertexColor(r, g, b, 1)
+                row.text:SetText(recipe.name or "Receta sin nombre")
+                if (recipe.key or recipe.name) == self.selectedRecipeKey then
+                    row.selectedBackground:Show()
+                    row.text:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
                 else
-                    row.text:SetText(recipeName)
-                    row.text:SetTextColor(GetDifficultyColor(recipe))
+                    row.selectedBackground:Hide()
+                    row.text:SetTextColor(r, g, b)
                 end
                 row:Show()
             else
@@ -401,10 +559,7 @@ function PA:CreateProfessionFrame()
         local selectedIndex
         if self.selectedRecipeKey then
             for index, recipe in ipairs(self.filteredRecipes) do
-                if (recipe.key or recipe.name) == self.selectedRecipeKey then
-                    selectedIndex = index
-                    break
-                end
+                if (recipe.key or recipe.name) == self.selectedRecipeKey then selectedIndex = index break end
             end
         end
 
@@ -412,33 +567,50 @@ function PA:CreateProfessionFrame()
             self:ShowRecipeDetails(selectedIndex)
         else
             self.selectedRecipeKey = nil
-            right.recipeName:SetText(total > 0 and "Selecciona una receta" or (self.professionID and "Aún no hay recetas" or "Selecciona una profesión"))
-            right.recipeResult:SetText("")
-            right.skill:SetText("")
-            right.description:SetText(total > 0 and "Elige una receta para ver su resultado y materiales." or (self.professionID and "Abre el libro nativo de esta profesión para leer las recetas conocidas del personaje." or "Elige una profesión aprendida en el panel de la izquierda."))
-            right.materialsTitle:SetText("")
-            right.materials:SetText("")
+            recipeName:SetText(total > 0 and "Selecciona una receta" or "Aún no hay recetas")
+            recipeResult:SetText("")
+            recipeSkill:SetText("")
+            description:SetText(total > 0 and "Selecciona una receta para ver su resultado y materiales."
+                or "Abre el libro nativo de esta profesión para leer las recetas conocidas del personaje.")
+            resultIcon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+            materialsTitle:SetText("MATERIALES NECESARIOS")
+            for i = 1, table.getn(materialCards) do materialCards[i]:Hide() end
+            infoText:SetText(total > 0 and "Selecciona una receta." or "Sin recetas leídas del libro.")
         end
     end
+
     search:SetScript("OnTextChanged", function()
         if search:GetText() ~= frame.lastSearch then
             frame.lastSearch = search:GetText()
             scroll.offset = 0
             if FauxScrollFrame_SetOffset then FauxScrollFrame_SetOffset(scroll, 0) end
+            frame.selectedRecipeKey = nil
         end
         frame:RefreshRecipes()
     end)
+
     scroll:SetScript("OnVerticalScroll", function(self, offset)
         FauxScrollFrame_OnVerticalScroll(self, offset, ROW_HEIGHT, function() frame:RefreshRecipes() end)
     end)
+    materialsScroll:SetScript("OnVerticalScroll", function(self, offset)
+        FauxScrollFrame_OnVerticalScroll(self, offset, MATERIAL_ROW_HEIGHT, function()
+            if frame.selectedRecipeKey then
+                local index
+                for i, recipe in ipairs(frame.filteredRecipes) do
+                    if (recipe.key or recipe.name) == frame.selectedRecipeKey then index = i break end
+                end
+                if index then frame:ShowRecipeDetails(index) end
+            end
+        end)
+    end)
 
-    frame:ShowProfessionSelection()
-    frame:RefreshRecipes()
-    local closeAction = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    closeAction:SetSize(112, 28)
-    closeAction:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -34, 27)
-    closeAction:SetText("Cerrar")
-    closeAction:SetScript("OnClick", function() frame:Hide() end)
+    function frame:Refresh()
+        self:RefreshProfessionSelection()
+        self:RefreshRecipes()
+    end
+
     self.frame = frame
+    frame:RefreshProfessionSelection()
+    frame:RefreshRecipes()
     return frame
 end
