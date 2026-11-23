@@ -36,9 +36,11 @@ function PA:ScanTradeSkill()
         local name, skillType, craftableCount = GetTradeSkillInfo(index)
         if name and skillType ~= "header" and skillType ~= "subheader" then
             local resultLink = GetTradeSkillItemLink and GetTradeSkillItemLink(index)
-            local resultName, _, _, _, _, _, _, _, _, resultTexture
+            local resultName, resultTexture
             if resultLink and GetItemInfo then
-                resultName, _, _, _, _, _, _, _, _, resultTexture = GetItemInfo(resultLink)
+                local itemInfo = { GetItemInfo(resultLink) }
+                resultName = itemInfo[1]
+                resultTexture = itemInfo[10]
             end
             local recipe = {
                 key = resultLink or (name .. ":" .. tostring(index)),
