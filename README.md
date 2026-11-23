@@ -2,7 +2,7 @@
 
 Addon para clientes de World of Warcraft 3.3.5a (Interface 30300). Detecta las profesiones que el personaje aprendió, las separa en primarias y secundarias y lee recetas del libro nativo del cliente.
 
-## Versión 0.8.0
+## Versión 0.8.1
 
 - Arranque en `PLAYER_LOGIN`, sin depender del nombre que el cliente reporte en `ADDON_LOADED`.
 - Mensaje visible al cargar para confirmar que el addon se inicializó.
@@ -30,7 +30,7 @@ El addon lee **recetas que el personaje ya conoce y que aparecen en el libro nat
 
 - `/pa debug`: confirma versión, cliente, profesiones detectadas y última línea de profesión leída.
 - `/pa scan`: vuelve a leer la profesión cuyo libro está abierto.
-- Al entrar al mundo debe aparecer el mensaje `v0.8.0 cargado`. Si no aparece y el addon tampoco figura en **Accesorios**, el cliente no está leyendo esa carpeta de AddOns.
+- Al entrar al mundo debe aparecer el mensaje `v0.8.1 cargado`. Si no aparece y el addon tampoco figura en **Accesorios**, el cliente no está leyendo esa carpeta de AddOns.
 
 ## Compatibilidad
 
