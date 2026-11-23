@@ -1,22 +1,7 @@
--- Imports the recipes visible in the native 3.3.5 profession window.
--- This reads the player's client data, so the names and reagents match the server.
+-- Lee las recetas que el cliente 3.3.5a muestra en el libro abierto.
+-- No inventa un catálogo ni supone que todas las fases del servidor estén habilitadas.
 PA = PA or {}
 PA.TradeSkillRecipes = PA.TradeSkillRecipes or {}
-
-local function Normalize(value)
-    return string.lower(string.gsub(value or "", "%s+", ""))
-end
-
-local function FindProfession(skillLine)
-    local normalizedLine = Normalize(skillLine)
-    for _, profession in ipairs(PA_ProfessionCatalog or {}) do
-        for _, alias in ipairs(profession.skillNames or {}) do
-            if normalizedLine == Normalize(alias) then
-                return profession
-            end
-        end
-    end
-end
 
 local function GetDifficulty(skillType)
     if skillType == "optimal" then return "orange" end
@@ -26,22 +11,38 @@ local function GetDifficulty(skillType)
     return nil
 end
 
+local function GetLinkName(itemLink)
+    if not itemLink then return nil end
+    return string.match(itemLink, "%[(.-)%]")
+end
+
 function PA:ScanTradeSkill()
-    if not GetTradeSkillLine or not GetNumTradeSkills or not GetTradeSkillInfo then return end
+    if not GetTradeSkillLine or not GetNumTradeSkills or not GetTradeSkillInfo then
+        self.LastScanError = "El cliente no expone la API del libro de profesiones."
+        return false
+    end
 
     local skillLine = GetTradeSkillLine()
-    local profession = FindProfession(skillLine)
-    if not profession then return end
+    self.LastTradeSkillLine = skillLine
+    local profession = self:FindProfessionBySkillName(skillLine)
+    if not profession then
+        self.LastScanError = "No pude identificar la profesión abierta: " .. tostring(skillLine)
+        return false
+    end
 
     local recipes = {}
-    local count = GetNumTradeSkills() or 0
-    for index = 1, count do
-        local name, skillType = GetTradeSkillInfo(index)
+    local entryCount = GetNumTradeSkills() or 0
+    for index = 1, entryCount do
+        local name, skillType, craftableCount = GetTradeSkillInfo(index)
         if name and skillType ~= "header" and skillType ~= "subheader" then
+            local resultLink = GetTradeSkillItemLink and GetTradeSkillItemLink(index)
             local recipe = {
+                key = resultLink or (name .. ":" .. tostring(index)),
                 name = name,
+                result = GetLinkName(resultLink) or name,
                 difficulty = GetDifficulty(skillType),
-                description = "Receta aprendida que aparece en el libro de profesión.",
+                craftableCount = tonumber(craftableCount),
+                description = "Dato leído del libro de profesión de este personaje.",
                 materials = {}
             }
 
@@ -52,8 +53,8 @@ function PA:ScanTradeSkill()
                     if reagentName then
                         table.insert(recipe.materials, {
                             name = reagentName,
-                            count = quantity or 1,
-                            owned = owned or 0
+                            count = tonumber(quantity) or 1,
+                            owned = tonumber(owned) or 0
                         })
                     end
                 end
@@ -64,13 +65,22 @@ function PA:ScanTradeSkill()
     end
 
     self.TradeSkillRecipes[profession.id] = recipes
+    self.LastScanError = nil
+    self.LastScanProfession = profession.id
+    self.LastScanCount = table.getn(recipes)
+
     if self.frame then
         self.frame:RefreshRecipes()
         if self.frame.professionID == profession.id then
-            local message = #recipes > 0
-                and ("Recetas conocidas cargadas: " .. tostring(#recipes))
-                or "No se encontraron recetas en el libro abierto."
+            local message
+            if table.getn(recipes) > 0 then
+                message = "Recetas conocidas leídas del libro: " .. tostring(table.getn(recipes))
+            else
+                message = "El libro de esta profesión está vacío o no entregó recetas."
+            end
             self.frame:SetRecipeStatus(message)
         end
     end
+
+    return true, table.getn(recipes)
 end
