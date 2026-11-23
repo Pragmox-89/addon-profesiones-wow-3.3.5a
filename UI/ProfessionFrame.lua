@@ -1,8 +1,8 @@
 PA = PA or {}
 
 local WINDOW_WIDTH, WINDOW_HEIGHT = 1140, 720
-local WINDOW_SCALE = 1.30
-local ROW_HEIGHT, VISIBLE_ROWS = 34, 9
+local WINDOW_SCALE = 0.95
+local ROW_HEIGHT, VISIBLE_ROWS = 48, 6
 local MATERIAL_ROW_HEIGHT, VISIBLE_MATERIAL_ROWS = 62, 2
 
 local PROFESSION_ICONS = {
@@ -33,6 +33,8 @@ local function CreateLabel(parent, text, font, point, relative, relativePoint, x
     label:SetPoint(point, relative, relativePoint, x, y)
     if width then label:SetWidth(width) end
     label:SetJustifyH("LEFT")
+    local fontPath, fontSize, fontFlags = label:GetFont()
+    if fontPath and fontSize then label:SetFont(fontPath, fontSize * 1.10, fontFlags) end
     label:SetText(text or "")
     return label
 end
@@ -43,12 +45,18 @@ local function CreatePanel(parent, width, height)
     if height then panel:SetHeight(height) end
     panel:SetBackdrop({
         bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 32, edgeSize = 16,
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        tile = true, tileSize = 32, edgeSize = 24,
         insets = { left = 5, right = 5, top = 5, bottom = 5 }
     })
-    panel:SetBackdropColor(0.035, 0.028, 0.020, 0.96)
+    panel:SetBackdropColor(0.13, 0.095, 0.060, 0.98)
     panel:SetBackdropBorderColor(0.72, 0.52, 0.23, 1)
+    local panelFill = panel:CreateTexture(nil, "BACKGROUND")
+    panelFill:SetPoint("TOPLEFT", panel, "TOPLEFT", 7, -7)
+    panelFill:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -7, 7)
+    panelFill:SetTexture("Interface\\Buttons\\WHITE8X8")
+    panelFill:SetVertexColor(0.045, 0.032, 0.020, 1)
+    panel.interiorFill = panelFill
     return panel
 end
 
@@ -96,17 +104,23 @@ function PA:CreateProfessionFrame()
         tile = true, tileSize = 32, edgeSize = 32,
         insets = { left = 14, right = 14, top = 14, bottom = 14 }
     })
-    frame:SetBackdropColor(0.055, 0.047, 0.035, 0.99)
+    frame:SetBackdropColor(0.14, 0.105, 0.065, 0.99)
     frame:SetBackdropBorderColor(0.88, 0.68, 0.31, 1)
+    local bodyFill = frame:CreateTexture(nil, "BACKGROUND")
+    bodyFill:SetPoint("TOPLEFT", frame, "TOPLEFT", 30, -30)
+    bodyFill:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -30, 30)
+    bodyFill:SetTexture("Interface\\Buttons\\WHITE8X8")
+    bodyFill:SetVertexColor(0.025, 0.019, 0.013, 1)
+    frame.bodyFill = bodyFill
     frame:Hide()
 
     local headerBand = CreatePanel(frame)
     headerBand:SetPoint("TOPLEFT", frame, "TOPLEFT", 128, -14)
     headerBand:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -46, -14)
     headerBand:SetHeight(54)
-    headerBand:SetBackdropColor(0.025, 0.022, 0.018, 0.98)
+    headerBand:SetBackdropColor(0.075, 0.055, 0.035, 0.98)
     local title = CreateLabel(headerBand,
-        "Profession Assistant  |cffffcc00" .. tostring(PA.VERSION or "0.8.2") .. "|r",
+        "Profession Assistant  |cffffcc00" .. tostring(PA.VERSION or "0.8.3") .. "|r",
         "GameFontNormalLarge", "CENTER", headerBand, "CENTER", 0, 0)
     title:SetJustifyH("CENTER")
 
@@ -284,15 +298,15 @@ function PA:CreateProfessionFrame()
     recipeSkill:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
     local description = CreateLabel(detailsPanel,
         "Elige una receta para consultar su resultado y materiales.",
-        "GameFontHighlight", "TOPLEFT", resultIconFrame, "BOTTOMLEFT", 0, -12, 384)
+        "GameFontHighlight", "TOPLEFT", recipeSkill, "BOTTOMLEFT", 0, -8, 384)
     description:SetTextColor(PALE[1], PALE[2], PALE[3])
 
     local materialsTitle = CreateLabel(detailsPanel, "MATERIALES NECESARIOS", "GameFontNormal",
-        "TOPLEFT", detailsPanel, "TOPLEFT", 16, -171)
+        "TOPLEFT", description, "BOTTOMLEFT", 0, -8)
     materialsTitle:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
     local materialsScroll = CreateFrame("ScrollFrame", "ProfessionAssistantMaterialsScroll", detailsPanel, "FauxScrollFrameTemplate")
-    materialsScroll:SetPoint("TOPLEFT", detailsPanel, "TOPLEFT", 14, -198)
+    materialsScroll:SetPoint("TOPLEFT", materialsTitle, "BOTTOMLEFT", 0, -8)
     materialsScroll:SetPoint("BOTTOMRIGHT", detailsPanel, "BOTTOMRIGHT", -30, 82)
 
     local materialCards = {}
@@ -311,7 +325,7 @@ function PA:CreateProfessionFrame()
         return card
     end
     for i = 1, VISIBLE_MATERIAL_ROWS * 2 do
-        local card = CreateMaterialCard(materialsScroll, i)
+        local card = CreateMaterialCard(detailsPanel, i)
         local col = (i - 1) % 2
         local row = math.floor((i - 1) / 2)
         card:SetPoint("TOPLEFT", materialsScroll, "TOPLEFT", col * 184, -row * MATERIAL_ROW_HEIGHT)
@@ -479,6 +493,7 @@ function PA:CreateProfessionFrame()
 
         local materials = recipe.materials or {}
         local count = table.getn(materials)
+        materialsTitle:SetText(count > 0 and "MATERIALES NECESARIOS" or "MATERIALES NO DISPONIBLES")
         FauxScrollFrame_Update(materialsScroll, math.ceil(count / 2), VISIBLE_MATERIAL_ROWS, MATERIAL_ROW_HEIGHT)
         local offset = FauxScrollFrame_GetOffset(materialsScroll)
         for i = 1, VISIBLE_MATERIAL_ROWS * 2 do
@@ -614,3 +629,5 @@ function PA:CreateProfessionFrame()
     frame:RefreshRecipes()
     return frame
 end
+
+
