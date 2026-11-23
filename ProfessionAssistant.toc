@@ -1,8 +1,8 @@
 ## Interface: 30300
 ## Title: Profession Assistant
-## Notes: Asistente modular de profesiones para World of Warcraft 3.3.5a
+## Notes: Profesiones y recetas conocidas para WoW 3.3.5a
 ## Author: Pragmox-89
-## Version: 0.7.0
+## Version: 0.8.0
 
 Data/Professions.lua
 Data/TradeSkillScanner.lua
