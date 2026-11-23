@@ -3,12 +3,16 @@ PA = PA or {}
 local addon = CreateFrame("Frame")
 addon:RegisterEvent("ADDON_LOADED")
 addon:RegisterEvent("SKILL_LINES_CHANGED")
+addon:RegisterEvent("TRADE_SKILL_SHOW")
+addon:RegisterEvent("TRADE_SKILL_UPDATE")
 addon:SetScript("OnEvent", function(self, event, name)
     if event == "ADDON_LOADED" and name == "ProfessionAssistant" then
         PA:CreateProfessionFrame()
         DEFAULT_CHAT_FRAME:AddMessage("|cff66ccffProfession Assistant|r cargado. Escribe |cffffff00/pa|r para abrirlo.")
     elseif event == "SKILL_LINES_CHANGED" and PA.frame then
         PA.frame:RefreshProfessionSelection()
+    elseif (event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_UPDATE") and PA.ScanTradeSkill then
+        PA:ScanTradeSkill()
     end
 end)
 
