@@ -1,5 +1,10 @@
 # Cambios
 
+## 0.8.2
+
+- Rediseña la ventana con marco y paneles en tonos dorados, iconos de profesión y una escala legible en el cliente.
+- Añade iconos de resultado y materiales, cantidades disponibles y filtro de recetas fabricables.
+
 ## 0.8.1
 
 - Normaliza las rutas de los archivos Lua del `.toc` con separadores `\\`, como usa el cliente 3.3.5a.
