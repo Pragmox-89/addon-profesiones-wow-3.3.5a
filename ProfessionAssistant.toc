@@ -2,7 +2,7 @@
 ## Title: Profession Assistant
 ## Notes: Profesiones y recetas conocidas para WoW 3.3.5a
 ## Author: Pragmox-89
-## Version: 0.8.2
+## Version: 0.8.3
 
 Data\Professions.lua
 Data\TradeSkillScanner.lua
