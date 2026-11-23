@@ -42,7 +42,7 @@ function PA:CreateProfessionFrame()
     })
     frame:SetBackdropColor(0.48, 0.43, 0.34, 0.98)
 
-    local title = CreateLabel(frame, "Profession Assistant  |cffaaaaaa0.6.0|r", "GameFontNormalLarge", "TOP", frame, "TOP", 0, -20)
+    local title = CreateLabel(frame, "Profession Assistant  |cffaaaaaa0.7.0|r", "GameFontNormalLarge", "TOP", frame, "TOP", 0, -20)
     title:SetJustifyH("CENTER")
 
     local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
@@ -146,7 +146,9 @@ function PA:CreateProfessionFrame()
     })
     recommendation:SetBackdropColor(0.08, 0.06, 0.02, 0.85)
     CreateLabel(recommendation, "Recomendación", "GameFontNormal", "TOPLEFT", recommendation, "TOPLEFT", 12, -9)
-    recommendation.text = CreateLabel(recommendation, "El siguiente paso aparecerá cuando haya recetas y habilidad disponibles.", "GameFontHighlightSmall", "TOPLEFT", recommendation, "TOPLEFT", 12, -30, 700)
+    recommendation.text = CreateLabel(recommendation, "Abre una profesión aprendida para importar las recetas conocidas de tu personaje.", "GameFontHighlightSmall", "TOPLEFT", recommendation, "TOPLEFT", 12, -30, 700)
+
+    frame = frame or nil
 
     local selectionPanel = CreateFrame("Frame", nil, frame)
     selectionPanel:SetPoint("TOPLEFT", frame, "TOPLEFT", 30, -122)
@@ -265,9 +267,22 @@ function PA:CreateProfessionFrame()
         skillLevelText:SetText("Nivel actual: " .. tostring(skill.rank) .. " / " .. tostring(skill.maxRank))
         skillBar:SetMinMaxValues(0, skill.maxRank > 0 and skill.maxRank or 1)
         skillBar:SetValue(skill.rank)
-        nextStepText:SetText("Recomendación: pendiente de recetas")
+        local knownRecipes = PA.TradeSkillRecipes and PA.TradeSkillRecipes[selected.id]
+        local recipeCount = knownRecipes and table.getn(knownRecipes) or 0
+        self:SetRecipeStatus(recipeCount > 0 and ("Recetas conocidas cargadas: " .. tostring(recipeCount)) or "Abre el libro de profesión para importar tus recetas conocidas.")
+        for professionID, button in pairs(professionButtons) do
+            local fontString = button:GetFontString()
+            if fontString then
+                if professionID == selected.id then fontString:SetTextColor(1, 0.82, 0.1) else fontString:SetTextColor(1, 1, 1) end
+            end
+        end
         search:SetText("")
         self:RefreshRecipes()
+    end
+
+    function frame:SetRecipeStatus(message)
+        recommendation.text:SetText(message or "")
+        nextStepText:SetText(message or "")
     end
 
     function frame:ShowRecipeDetails(index)
@@ -287,7 +302,9 @@ function PA:CreateProfessionFrame()
         if recipe.materials then
             for _, material in ipairs(recipe.materials) do
                 local amount = material.count or material.quantity or 1
-                table.insert(lines, tostring(amount) .. " x " .. tostring(material.name or "Material"))
+                local owned = material.owned
+                local ownedText = owned ~= nil and ("  (" .. tostring(owned) .. " disponibles)") or ""
+                table.insert(lines, tostring(amount) .. " x " .. tostring(material.name or "Material") .. ownedText)
             end
         end
         if table.getn(lines) == 0 then
@@ -299,7 +316,7 @@ function PA:CreateProfessionFrame()
 
     function frame:RefreshRecipes()
         local profession = PA:GetProfession(self.professionID)
-        local recipes = profession and profession.recipes or {}
+        local recipes = (PA.TradeSkillRecipes and PA.TradeSkillRecipes[self.professionID]) or (profession and profession.recipes) or {}
         local query = string.lower(search:GetText() or "")
         self.filteredRecipes = {}
         for _, recipe in ipairs(recipes) do
@@ -332,7 +349,7 @@ function PA:CreateProfessionFrame()
             right.skill:SetText("")
             right.description:SetText(self.professionID and "La profesión seleccionada todavía no tiene recetas registradas." or "Los detalles aparecerán aquí cuando elijas una profesión.")
             right.materialsTitle:SetText("")
-            right.materials:SetText(self.professionID and "Cuando incorporemos sus datos, podrás consultar aquí recetas, materiales y requisitos." or "Selecciona una profesión aprendida en el panel de la izquierda.")
+            right.materials:SetText(self.professionID and "Abre el libro de esta profesión en el juego para importar las recetas que ya conoces." or "Selecciona una profesión aprendida en el panel de la izquierda.")
         end
     end
 
