@@ -1,3 +1,4 @@
+-- Módulo base de Peletería. Las recetas conocidas se importan del libro del juego.
 PA = PA or {}
 
 PA_Leatherworking = {
