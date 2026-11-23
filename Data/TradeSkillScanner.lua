@@ -36,10 +36,15 @@ function PA:ScanTradeSkill()
         local name, skillType, craftableCount = GetTradeSkillInfo(index)
         if name and skillType ~= "header" and skillType ~= "subheader" then
             local resultLink = GetTradeSkillItemLink and GetTradeSkillItemLink(index)
+            local resultName, _, _, _, _, _, _, _, _, resultTexture
+            if resultLink and GetItemInfo then
+                resultName, _, _, _, _, _, _, _, _, resultTexture = GetItemInfo(resultLink)
+            end
             local recipe = {
                 key = resultLink or (name .. ":" .. tostring(index)),
                 name = name,
-                result = GetLinkName(resultLink) or name,
+                result = resultName or GetLinkName(resultLink) or name,
+                resultTexture = resultTexture,
                 difficulty = GetDifficulty(skillType),
                 craftableCount = tonumber(craftableCount),
                 description = "Dato leído del libro de profesión de este personaje.",
@@ -49,10 +54,11 @@ function PA:ScanTradeSkill()
             if GetTradeSkillNumReagents and GetTradeSkillReagentInfo then
                 local reagentCount = GetTradeSkillNumReagents(index) or 0
                 for reagentIndex = 1, reagentCount do
-                    local reagentName, _, quantity, owned = GetTradeSkillReagentInfo(index, reagentIndex)
+                    local reagentName, reagentTexture, quantity, owned = GetTradeSkillReagentInfo(index, reagentIndex)
                     if reagentName then
                         table.insert(recipe.materials, {
                             name = reagentName,
+                            texture = reagentTexture,
                             count = tonumber(quantity) or 1,
                             owned = tonumber(owned) or 0
                         })
