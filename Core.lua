@@ -29,8 +29,11 @@ addon:RegisterEvent("TRADE_SKILL_SHOW")
 addon:RegisterEvent("TRADE_SKILL_UPDATE")
 addon:SetScript("OnEvent", function(self, event)
     if event == "PLAYER_LOGIN" then
-        EnsureWindow()
-        Print("v" .. ADDON_VERSION .. " cargado. Escribe /pa para abrir la ventana.")
+        if EnsureWindow() then
+            Print("v" .. ADDON_VERSION .. " cargado. Escribe /pa para abrir la ventana.")
+        else
+            Print("Se cargó el código, pero la ventana no inició. Usa /pa debug y comparte el mensaje de error.")
+        end
     elseif event == "SKILL_LINES_CHANGED" and PA.frame then
         PA.frame:RefreshProfessionSelection()
     elseif (event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_UPDATE") and PA.ScanTradeSkill then
