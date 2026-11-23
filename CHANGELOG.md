@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.8.3
+
+- Reduce la ventana a un tamaño moderado y devuelve la tipografía a escala habitual de WoW.
+- Corrige la capa de las tarjetas para mostrar los materiales reales de cada receta.
+- Mejora el fondo y los bordes con paneles opacos y marcos dorados.
+- Añade lectura alternativa del enlace del ingrediente para recuperar su nombre e icono.
+
 ## 0.8.2
 
 - Rediseña la ventana con marco y paneles en tonos dorados, iconos de profesión y una escala legible en el cliente.
