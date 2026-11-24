@@ -1,6 +1,6 @@
 PA = PA or {}
 
-local ADDON_VERSION = PA.VERSION or "0.8.5"
+local ADDON_VERSION = PA.VERSION or "0.9.0"
 local addon = CreateFrame("Frame")
 local function Print(message)
     if DEFAULT_CHAT_FRAME then
