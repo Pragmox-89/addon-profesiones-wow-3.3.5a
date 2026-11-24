@@ -1,4 +1,4 @@
-## 0.8.4
+# Cambios
 
 ## 0.8.4
 
@@ -7,8 +7,6 @@
 - Solo permite fabricar con la profesión correcta abierta, materiales suficientes y sin restricciones de descanso.
 - Compacta la ventana y usa resaltados, botones de cantidad y texturas de interfaz clásica de WoW.
 - Retira mensajes redundantes sobre el origen de las recetas.
-
-# Cambios
 
 ## 0.8.3
 
