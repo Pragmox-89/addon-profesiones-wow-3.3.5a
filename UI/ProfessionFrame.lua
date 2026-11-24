@@ -126,7 +126,7 @@ function PA:CreateProfessionFrame()
     headerRule:SetPoint("BOTTOMRIGHT", headerBand, "BOTTOMRIGHT", -22, 3)
     headerRule:SetHeight(12)
     local title = CreateLabel(headerBand,
-        "Profession Assistant  |cffffcc00" .. tostring(PA.VERSION or "0.8.2") .. "|r",
+        "Profession Assistant  |cffffcc00" .. tostring(PA.VERSION or "0.8.5") .. "|r",
         "GameFontNormalLarge", "CENTER", headerBand, "CENTER", 0, 0)
     title:SetJustifyH("CENTER")
 
@@ -417,6 +417,9 @@ function PA:CreateProfessionFrame()
     closeButton:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -28, 22)
     closeButton:SetText("Cerrar")
     closeButton:SetScript("OnClick", function() frame:Hide() end)
+    frame:SetScript("OnHide", function()
+        if PA.RestoreNativeTradeSkillFrame then PA:RestoreNativeTradeSkillFrame() end
+    end)
 
     frame.professionID = nil
     frame.filteredRecipes = {}
@@ -481,8 +484,13 @@ function PA:CreateProfessionFrame()
     function frame:RefreshCraftControls()
         local recipe, index, available = self:GetCraftContext()
         local selected = self.selectedRecipe ~= nil
-        quantityDown:SetEnabled(selected)
-        quantityUp:SetEnabled(selected)
+        if selected then
+            quantityDown:Enable()
+            quantityUp:Enable()
+        else
+            quantityDown:Disable()
+            quantityUp:Disable()
+        end
         if selected then
             local maximum = available or tonumber(self.selectedRecipe.craftableCount) or 0
             infoText:SetText("Fabricables: " .. tostring(maximum))
@@ -560,7 +568,8 @@ function PA:CreateProfessionFrame()
             if profession then
                 self.knownProfessions[profession.id] = {
                     rank = tonumber(skillRank) or 0,
-                    maxRank = tonumber(skillMaxRank) or 0
+                    maxRank = tonumber(skillMaxRank) or 0,
+                    skillLineName = skillName
                 }
             end
         end
@@ -625,6 +634,9 @@ function PA:CreateProfessionFrame()
             and (tostring(table.getn(recipes)) .. " recetas")
             or "Sin recetas")
         self:RefreshRecipes()
+        if PA.OpenProfessionFromAssistant then
+            PA:OpenProfessionFromAssistant(skill.skillLineName, id)
+        end
     end
 
     function frame:ShowRecipeDetails(index)
