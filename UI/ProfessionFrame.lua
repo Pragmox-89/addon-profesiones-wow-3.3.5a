@@ -78,6 +78,50 @@ local function GetDifficultyName(recipe)
     return "No indicada"
 end
 
+local function GetMaterialOwnedCount(material)
+    local itemID = tonumber(material and material.itemID)
+    if not itemID and material and material.itemLink then
+        itemID = tonumber(string.match(material.itemLink, "item:(%d+)"))
+    end
+    if itemID and GetItemCount then
+        local count = GetItemCount(itemID)
+        if count ~= nil then return tonumber(count) or 0 end
+    end
+    return tonumber(material and material.owned) or 0
+end
+
+local function GetRecommendationProfile(recipe)
+    local materials = recipe and recipe.materials or {}
+    local profile = {
+        recipe = recipe,
+        materialTypes = table.getn(materials),
+        totalNeeded = 0,
+        missingUnits = 0,
+        missingTypes = 0,
+        rareMissingTypes = 0,
+        hasData = table.getn(materials) > 0,
+        isGray = recipe and (recipe.difficulty == "gray" or recipe.difficulty == "grey") or false
+    }
+
+    for _, material in ipairs(materials) do
+        local needed = tonumber(material.count or material.quantity) or 1
+        local owned = GetMaterialOwnedCount(material)
+        local missing = math.max(needed - owned, 0)
+        profile.totalNeeded = profile.totalNeeded + needed
+        if missing > 0 then
+            profile.missingUnits = profile.missingUnits + missing
+            profile.missingTypes = profile.missingTypes + 1
+            if (tonumber(material.quality) or 0) >= 2 then
+                profile.rareMissingTypes = profile.rareMissingTypes + 1
+            end
+        end
+    end
+
+    profile.hasMaterials = profile.hasData and profile.missingUnits == 0
+    profile.canCraftNow = profile.hasMaterials and (tonumber(recipe.craftableCount) or 0) > 0
+    return profile
+end
+
 local function GetProfessionByID(id)
     for _, profession in ipairs(PA_ProfessionCatalog or {}) do
         if profession.id == id then return profession end
@@ -126,7 +170,7 @@ function PA:CreateProfessionFrame()
     headerRule:SetPoint("BOTTOMRIGHT", headerBand, "BOTTOMRIGHT", -22, 3)
     headerRule:SetHeight(12)
     local title = CreateLabel(headerBand,
-        "Profession Assistant  |cffffcc00" .. tostring(PA.VERSION or "0.8.5") .. "|r",
+        "Profession Assistant  |cffffcc00" .. tostring(PA.VERSION or "0.9.0") .. "|r",
         "GameFontNormalLarge", "CENTER", headerBand, "CENTER", 0, 0)
     title:SetJustifyH("CENTER")
 
@@ -400,6 +444,102 @@ function PA:CreateProfessionFrame()
         frame:RefreshRecipes()
     end)
 
+    local recommendationsButton = CreateFrame("Button", nil, filtersPanel, "UIPanelButtonTemplate")
+    recommendationsButton:SetSize(154, 34)
+    recommendationsButton:SetPoint("LEFT", craftableButton, "RIGHT", 12, 0)
+    recommendationsButton:SetText("Recomendaciones")
+    recommendationsButton:SetScript("OnClick", function()
+        frame:OpenRecommendations()
+    end)
+
+    local recommendationOverlay = CreateFrame("Frame", nil, frame)
+    recommendationOverlay:SetAllPoints(frame)
+    recommendationOverlay:SetFrameStrata("DIALOG")
+    recommendationOverlay:SetFrameLevel(frame:GetFrameLevel() + 10)
+    recommendationOverlay:EnableMouse(true)
+    local overlayShade = recommendationOverlay:CreateTexture(nil, "BACKGROUND")
+    overlayShade:SetAllPoints(recommendationOverlay)
+    overlayShade:SetTexture("Interface\\Buttons\\WHITE8X8")
+    overlayShade:SetVertexColor(0, 0, 0, 0.62)
+    recommendationOverlay:Hide()
+
+    local recommendationPopup = CreateFrame("Frame", nil, frame)
+    recommendationPopup:SetSize(650, 410)
+    recommendationPopup:SetPoint("CENTER", frame, "CENTER", 0, 0)
+    recommendationPopup:SetFrameStrata("DIALOG")
+    recommendationPopup:SetFrameLevel(frame:GetFrameLevel() + 11)
+    recommendationPopup:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        tile = true, tileSize = 32, edgeSize = 32,
+        insets = { left = 14, right = 14, top = 14, bottom = 14 }
+    })
+    recommendationPopup:SetBackdropColor(0.12, 0.085, 0.050, 0.99)
+    recommendationPopup:SetBackdropBorderColor(0.88, 0.68, 0.31, 1)
+    local popupFill = recommendationPopup:CreateTexture(nil, "BACKGROUND")
+    popupFill:SetPoint("TOPLEFT", recommendationPopup, "TOPLEFT", 26, -26)
+    popupFill:SetPoint("BOTTOMRIGHT", recommendationPopup, "BOTTOMRIGHT", -26, 26)
+    popupFill:SetTexture("Interface\\Buttons\\WHITE8X8")
+    popupFill:SetVertexColor(0.025, 0.019, 0.013, 0.97)
+    local popupTitle = CreateLabel(recommendationPopup, "Recetas recomendadas", "GameFontNormalLarge",
+        "TOPLEFT", recommendationPopup, "TOPLEFT", 24, -22, 520)
+    popupTitle:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+    local popupSubtitle = CreateLabel(recommendationPopup,
+        "Prioriza recetas que aún suben habilidad y requieren menos materiales.",
+        "GameFontHighlightSmall", "TOPLEFT", popupTitle, "BOTTOMLEFT", 0, -6, 560)
+    popupSubtitle:SetTextColor(PALE[1], PALE[2], PALE[3])
+
+    local popupClose = CreateFrame("Button", nil, recommendationPopup, "UIPanelCloseButton")
+    popupClose:SetPoint("TOPRIGHT", recommendationPopup, "TOPRIGHT", -7, -7)
+    popupClose:SetScript("OnClick", function()
+        recommendationPopup:Hide()
+        recommendationOverlay:Hide()
+    end)
+
+    local recommendationRows = {}
+    for i = 1, 3 do
+        local row = CreateFrame("Button", nil, recommendationPopup)
+        row:SetSize(590, 70)
+        row:SetPoint("TOPLEFT", recommendationPopup, "TOPLEFT", 22, -82 - ((i - 1) * 76))
+        row:SetBackdrop({
+            bgFile = "Interface\\Buttons\\WHITE8X8",
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            tile = true, tileSize = 16, edgeSize = 12,
+            insets = { left = 3, right = 3, top = 3, bottom = 3 }
+        })
+        row:SetBackdropColor(0.045, 0.035, 0.025, 0.98)
+        row:SetBackdropBorderColor(0.50, 0.38, 0.18, 1)
+        row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+        row.rank = CreateLabel(row, tostring(i), "GameFontNormalLarge", "LEFT", row, "LEFT", 14, 0, 30)
+        row.rank:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+        row.name = CreateLabel(row, "", "GameFontNormal", "TOPLEFT", row, "TOPLEFT", 52, -12, 510)
+        row.name:SetTextColor(PALE[1], PALE[2], PALE[3])
+        row.reason = CreateLabel(row, "", "GameFontHighlightSmall", "TOPLEFT", row.name, "BOTTOMLEFT", 0, -4, 510)
+        row.reason:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+        row:SetScript("OnClick", function(self)
+            if self.recipeKey then frame:SelectRecommendedRecipe(self.recipeKey) end
+        end)
+        row:Hide()
+        recommendationRows[i] = row
+    end
+
+    local popupEmpty = CreateLabel(recommendationPopup, "Selecciona una profesión con recetas para recibir sugerencias.",
+        "GameFontHighlight", "CENTER", recommendationPopup, "CENTER", 0, -2, 540)
+    popupEmpty:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+    popupEmpty:Hide()
+    local popupNote = CreateLabel(recommendationPopup,
+        "Guía orientativa: usa tu inventario y la rareza que informa el cliente; no incluye zonas ni vendedores.",
+        "GameFontHighlightSmall", "BOTTOMLEFT", recommendationPopup, "BOTTOMLEFT", 22, 22, 470)
+    popupNote:SetTextColor(MUTED[1], MUTED[2], MUTED[3])
+    local popupDone = CreateFrame("Button", nil, recommendationPopup, "UIPanelButtonTemplate")
+    popupDone:SetSize(104, 28)
+    popupDone:SetPoint("BOTTOMRIGHT", recommendationPopup, "BOTTOMRIGHT", -22, 17)
+    popupDone:SetText("Cerrar")
+    popupDone:SetScript("OnClick", function()
+        recommendationPopup:Hide()
+        recommendationOverlay:Hide()
+    end)
+
     local statusPanel = CreatePanel(frame)
     statusPanel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 18)
     statusPanel:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -166, 18)
@@ -418,6 +558,8 @@ function PA:CreateProfessionFrame()
     closeButton:SetText("Cerrar")
     closeButton:SetScript("OnClick", function() frame:Hide() end)
     frame:SetScript("OnHide", function()
+        recommendationPopup:Hide()
+        recommendationOverlay:Hide()
         if PA.RestoreNativeTradeSkillFrame then PA:RestoreNativeTradeSkillFrame() end
     end)
 
@@ -429,6 +571,7 @@ function PA:CreateProfessionFrame()
     frame.lastSearch = ""
     frame.materialCards = materialCards
     frame.craftButton = craftButton
+    frame.recommendationPopup = recommendationPopup
 
     local function GetCraftQuantity()
         local quantity = tonumber(quantityInput:GetText()) or 1
@@ -752,6 +895,106 @@ function PA:CreateProfessionFrame()
             self.selectedRecipe = nil
             quantityInput:SetText("1")
             self:RefreshCraftControls()
+        end
+    end
+
+    function frame:RefreshRecommendationPopup()
+        if not self.professionID then
+            popupEmpty:SetText("Selecciona una profesión con recetas para recibir sugerencias.")
+            popupEmpty:Show()
+            for i = 1, table.getn(recommendationRows) do recommendationRows[i]:Hide() end
+            return
+        end
+
+        local profession = PA:GetProfession(self.professionID)
+        local cached = PA.TradeSkillRecipes and PA.TradeSkillRecipes[self.professionID]
+        local recipes = cached and table.getn(cached) > 0 and cached or ((profession and profession.recipes) or {})
+        local recommendations = {}
+        for _, recipe in ipairs(recipes) do
+            local profile = GetRecommendationProfile(recipe)
+            if profile.hasData then table.insert(recommendations, profile) end
+        end
+
+        table.sort(recommendations, function(a, b)
+            if a.isGray ~= b.isGray then return not a.isGray end
+            if a.canCraftNow ~= b.canCraftNow then return a.canCraftNow end
+            if a.hasMaterials ~= b.hasMaterials then return a.hasMaterials end
+            if a.rareMissingTypes ~= b.rareMissingTypes then return a.rareMissingTypes < b.rareMissingTypes end
+            if a.missingTypes ~= b.missingTypes then return a.missingTypes < b.missingTypes end
+            if a.missingUnits ~= b.missingUnits then return a.missingUnits < b.missingUnits end
+            if a.materialTypes ~= b.materialTypes then return a.materialTypes < b.materialTypes end
+            if a.totalNeeded ~= b.totalNeeded then return a.totalNeeded < b.totalNeeded end
+            if a.recipe.difficulty ~= b.recipe.difficulty then
+                local rank = { orange = 1, yellow = 2, green = 3, gray = 4, grey = 4 }
+                return (rank[a.recipe.difficulty] or 5) < (rank[b.recipe.difficulty] or 5)
+            end
+            return string.lower(a.recipe.name or "") < string.lower(b.recipe.name or "")
+        end)
+
+        popupEmpty:Hide()
+        for i = 1, table.getn(recommendationRows) do
+            local row = recommendationRows[i]
+            local profile = recommendations[i]
+            if profile then
+                local recipe = profile.recipe
+                row.recipeKey = recipe.key or recipe.name
+                row.name:SetText(recipe.name or "Receta sin nombre")
+                local ingredientLabel = profile.materialTypes == 1 and "ingrediente" or "ingredientes"
+                local reason
+                local skillHint
+                if profile.isGray then
+                    skillHint = "Gris: no aumenta profesión"
+                else
+                    skillHint = "Habilidad " .. string.lower(GetDifficultyName(recipe))
+                end
+                if profile.canCraftNow then
+                    reason = "Puedes fabricarla ahora · " .. tostring(profile.materialTypes) .. " " .. ingredientLabel
+                elseif profile.hasMaterials then
+                    reason = "Tienes todos los materiales · " .. tostring(profile.materialTypes) .. " " .. ingredientLabel
+                else
+                    local missingLabel = profile.missingUnits == 1 and "unidad" or "unidades"
+                    local typeLabel = profile.missingTypes == 1 and "material" or "materiales"
+                    reason = "Faltan " .. tostring(profile.missingUnits) .. " " .. missingLabel ..
+                        " en " .. tostring(profile.missingTypes) .. " " .. typeLabel
+                    if profile.rareMissingTypes > 0 then
+                        reason = reason .. " · " .. tostring(profile.rareMissingTypes) .. " de mayor rareza"
+                    end
+                end
+                row.reason:SetText(reason .. " · " .. skillHint)
+                row:Show()
+            else
+                row.recipeKey = nil
+                row:Hide()
+            end
+        end
+
+        if table.getn(recommendations) == 0 then
+            popupEmpty:SetText("El cliente aún no ofrece datos suficientes de materiales para esta profesión.")
+            popupEmpty:Show()
+        end
+    end
+
+    function frame:OpenRecommendations()
+        self:RefreshRecommendationPopup()
+        recommendationOverlay:Show()
+        recommendationPopup:Show()
+    end
+
+    function frame:SelectRecommendedRecipe(recipeKey)
+        recommendationPopup:Hide()
+        recommendationOverlay:Hide()
+        if craftableOnly then
+            craftableOnly = false
+            craftableButton.check:Hide()
+        end
+        if search:GetText() ~= "" then search:SetText("") end
+        self:RefreshRecipes()
+        for index, recipe in ipairs(self.filteredRecipes) do
+            if (recipe.key or recipe.name) == recipeKey then
+                self:ShowRecipeDetails(index)
+                self:RefreshRecipes()
+                return
+            end
         end
     end
 
