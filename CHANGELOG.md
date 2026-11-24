@@ -1,5 +1,13 @@
 # Cambios
 
+## 0.8.5
+
+- Actualiza recetas al elegir una profesión desde el addon, sin abrir manualmente el libro nativo.
+- Guarda por personaje las recetas descubiertas para que la lista siga disponible después de recargar.
+- Oculta el libro nativo durante la lectura; respeta si ya estaba abierto por el jugador.
+- Cierra el libro nativo al cerrar el addon cuando fue abierto por el asistente.
+- Corrige un error de compatibilidad de botones que impedía crear la ventana tras recargar la interfaz.
+
 ## 0.8.4
 
 - Añade selector de cantidad y botón **Fabricar**, conectado a la creación nativa del cliente 3.3.5a.
@@ -39,3 +47,4 @@
 
 - Importa las recetas conocidas que aparecen en el libro nativo del cliente 3.3.5a.
 - Divide profesiones primarias y secundarias sin selección automática.
+
