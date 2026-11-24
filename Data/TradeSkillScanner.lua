@@ -18,6 +18,11 @@ local function GetLinkName(itemLink)
     return string.match(itemLink, "%[(.-)%]")
 end
 
+local function GetLinkItemID(itemLink)
+    if not itemLink then return nil end
+    return tonumber(string.match(itemLink, "item:(%d+)"))
+end
+
 function PA:ScanTradeSkill()
     if not GetTradeSkillLine or not GetNumTradeSkills or not GetTradeSkillInfo then
         self.LastScanError = "El cliente no expone la API del libro de profesiones."
@@ -61,17 +66,23 @@ function PA:ScanTradeSkill()
                 for reagentIndex = 1, reagentCount do
                     local reagentName, reagentTexture, quantity, owned = GetTradeSkillReagentInfo(index, reagentIndex)
                     local reagentLink = GetTradeSkillReagentItemLink and GetTradeSkillReagentItemLink(index, reagentIndex)
+                    local reagentItemID = GetLinkItemID(reagentLink)
+                    local reagentQuality
                     if reagentLink then
                         local reagentInfo = GetItemInfo and { GetItemInfo(reagentLink) } or nil
                         reagentName = reagentName or GetLinkName(reagentLink) or (reagentInfo and reagentInfo[1])
                         reagentTexture = reagentTexture or (reagentInfo and reagentInfo[10])
+                        reagentQuality = reagentInfo and tonumber(reagentInfo[3])
                     end
                     if reagentName then
                         table.insert(recipe.materials, {
                             name = reagentName,
                             texture = reagentTexture,
                             count = tonumber(quantity) or 1,
-                            owned = tonumber(owned) or 0
+                            owned = tonumber(owned) or 0,
+                            itemID = reagentItemID,
+                            itemLink = reagentLink,
+                            quality = reagentQuality
                         })
                     end
                 end
@@ -96,6 +107,10 @@ function PA:ScanTradeSkill()
 
     if self.frame then
         self.frame:RefreshRecipes()
+        if self.frame.recommendationPopup and self.frame.recommendationPopup:IsShown()
+            and self.frame.RefreshRecommendationPopup then
+            self.frame:RefreshRecommendationPopup()
+        end
         if self.frame.professionID == profession.id then
             local message
             if table.getn(recipes) > 0 then
