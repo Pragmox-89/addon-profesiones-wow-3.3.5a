@@ -2,7 +2,7 @@
 
 Addon para World of Warcraft 3.3.5a (Interface 30300). Detecta las profesiones aprendidas, separa primarias y secundarias, y lee las recetas que conoce el personaje.
 
-## Versión 0.8.5
+## Versión 0.9.0
 
 - Al elegir una profesión en el addon, carga y actualiza sus recetas sin que el jugador abra manualmente el libro nativo.
 - Guarda por personaje las recetas ya descubiertas y las muestra al volver a iniciar sesión.
@@ -14,10 +14,14 @@ Addon para World of Warcraft 3.3.5a (Interface 30300). Detecta las profesiones a
 - El botón se activa únicamente cuando está abierto el libro de la profesión correspondiente y hay materiales suficientes.
 - Ventana compacta con elementos de interfaz clásica de WoW.
 - Búsqueda de recetas y filtro de recetas fabricables.
+- Ventana emergente de recomendaciones para recetas conocidas.
+- Deja al final las recetas grises; luego prioriza las que puedes fabricar con tus materiales y las que exigen menos faltantes.
 
 ## Lo que lee y lo que falta
 
 El addon muestra las recetas que el personaje ya conoce y que aparecen en el libro nativo. No contiene todavía el catálogo de recetas no aprendidas, dónde conseguirlas ni una ruta de subida del 1 al 450. Los datos respetan las recetas que el cliente y el servidor muestran al personaje.
+
+Las recomendaciones son orientativas: consideran el color de subida de habilidad, los materiales del inventario y la rareza que informa el cliente. No incluyen rutas de farmeo ni vendedores, así que no pueden determinar con certeza dónde conseguir un material.
 
 ## Instalación
 
