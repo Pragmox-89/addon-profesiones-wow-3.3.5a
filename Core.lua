@@ -1,6 +1,6 @@
 PA = PA or {}
 
-local ADDON_VERSION = PA.VERSION or "0.8.4"
+local ADDON_VERSION = PA.VERSION or "0.8.5"
 local addon = CreateFrame("Frame")
 local function Print(message)
     if DEFAULT_CHAT_FRAME then
@@ -23,6 +23,64 @@ local function EnsureWindow()
     return PA.frame ~= nil
 end
 
+local function InstallNativeTradeSkillHook()
+    if not TradeSkillFrame or not TradeSkillFrame.HookScript or PA.NativeTradeSkillHookInstalled then return end
+    TradeSkillFrame:HookScript("OnShow", function()
+        if PA.frame and PA.frame:IsShown() then
+            if PA.ScanTradeSkill then PA:ScanTradeSkill() end
+            if PA.SuppressNativeTradeSkillFrame then PA:SuppressNativeTradeSkillFrame() end
+        end
+    end)
+    PA.NativeTradeSkillHookInstalled = true
+end
+
+function PA:OpenProfessionFromAssistant(skillLineName, professionID)
+    if not skillLineName then return false end
+
+    if TradeSkillFrame and TradeSkillFrame.IsShown and TradeSkillFrame:IsShown()
+        and GetTradeSkillLine and self.FindProfessionBySkillName then
+        local openProfession = self:FindProfessionBySkillName(GetTradeSkillLine())
+        if openProfession and openProfession.id == professionID then
+            return self:ScanTradeSkill()
+        end
+    end
+
+    if not CastSpellByName then return false end
+    InstallNativeTradeSkillHook()
+    if not (TradeSkillFrame and TradeSkillFrame.IsShown and TradeSkillFrame:IsShown()) then
+        self.NativeTradeSkillOpenedByAssistant = true
+    end
+    CastSpellByName(skillLineName)
+    return true
+end
+
+function PA:SuppressNativeTradeSkillFrame()
+    if not TradeSkillFrame or not TradeSkillFrame.IsShown or not TradeSkillFrame:IsShown() then return end
+    if not self.NativeTradeSkillFrameState then
+        local mouseEnabled = true
+        if TradeSkillFrame.IsMouseEnabled then mouseEnabled = TradeSkillFrame:IsMouseEnabled() end
+        self.NativeTradeSkillFrameState = {
+            alpha = TradeSkillFrame:GetAlpha(),
+            mouseEnabled = mouseEnabled
+        }
+    end
+    TradeSkillFrame:SetAlpha(0)
+    TradeSkillFrame:EnableMouse(false)
+end
+
+function PA:RestoreNativeTradeSkillFrame()
+    local state = self.NativeTradeSkillFrameState
+    if TradeSkillFrame and self.NativeTradeSkillOpenedByAssistant
+        and TradeSkillFrame.IsShown and TradeSkillFrame:IsShown() then
+        TradeSkillFrame:Hide()
+    end
+    self.NativeTradeSkillOpenedByAssistant = nil
+    if not state or not TradeSkillFrame then return end
+    TradeSkillFrame:SetAlpha(state.alpha or 1)
+    TradeSkillFrame:EnableMouse(state.mouseEnabled ~= false)
+    self.NativeTradeSkillFrameState = nil
+end
+
 addon:RegisterEvent("PLAYER_LOGIN")
 addon:RegisterEvent("SKILL_LINES_CHANGED")
 addon:RegisterEvent("TRADE_SKILL_SHOW")
@@ -37,7 +95,11 @@ addon:SetScript("OnEvent", function(self, event)
     elseif event == "SKILL_LINES_CHANGED" and PA.frame then
         PA.frame:RefreshProfessionSelection()
     elseif (event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_UPDATE") and PA.ScanTradeSkill then
-        PA:ScanTradeSkill()
+        InstallNativeTradeSkillHook()
+        local scanned = PA:ScanTradeSkill()
+        if scanned and PA.frame and PA.frame:IsShown() then
+            PA:SuppressNativeTradeSkillFrame()
+        end
     end
 end)
 
