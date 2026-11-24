@@ -1,5 +1,12 @@
 # Cambios
 
+## 0.9.0
+
+- Añade una ventana emergente con hasta tres recetas recomendadas de la profesión seleccionada.
+- Deja las recetas grises al final; prioriza materiales disponibles y pondera faltantes, variedad y rareza reportada por el cliente.
+- Permite seleccionar una sugerencia para ver sus materiales en el panel principal, sin fabricar automáticamente.
+- Aclara que el juego no proporciona rutas de farmeo ni vendedores para calcular una dificultad exacta de obtención.
+
 ## 0.8.5
 
 - Actualiza recetas al elegir una profesión desde el addon, sin abrir manualmente el libro nativo.
