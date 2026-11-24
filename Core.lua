@@ -41,7 +41,9 @@ function PA:OpenProfessionFromAssistant(skillLineName, professionID)
         and GetTradeSkillLine and self.FindProfessionBySkillName then
         local openProfession = self:FindProfessionBySkillName(GetTradeSkillLine())
         if openProfession and openProfession.id == professionID then
-            return self:ScanTradeSkill()
+            local scanned = self:ScanTradeSkill()
+            if self.frame and self.frame:IsShown() then self:SuppressNativeTradeSkillFrame() end
+            return scanned
         end
     end
 
