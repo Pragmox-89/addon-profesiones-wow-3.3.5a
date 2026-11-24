@@ -1,7 +1,9 @@
 -- Lee las recetas que el cliente 3.3.5a muestra en el libro abierto.
 -- No inventa un catálogo ni supone que todas las fases del servidor estén habilitadas.
 PA = PA or {}
-PA.TradeSkillRecipes = PA.TradeSkillRecipes or {}
+ProfessionAssistantDB = ProfessionAssistantDB or {}
+ProfessionAssistantDB.recipes = ProfessionAssistantDB.recipes or {}
+PA.TradeSkillRecipes = PA.TradeSkillRecipes or ProfessionAssistantDB.recipes
 
 local function GetDifficulty(skillType)
     if skillType == "optimal" then return "orange" end
@@ -79,7 +81,15 @@ function PA:ScanTradeSkill()
         end
     end
 
-    self.TradeSkillRecipes[profession.id] = recipes
+    local cachedRecipes = self.TradeSkillRecipes[profession.id]
+    if table.getn(recipes) == 0 and cachedRecipes and table.getn(cachedRecipes) > 0 then
+        recipes = cachedRecipes
+    else
+        self.TradeSkillRecipes[profession.id] = recipes
+    end
+    if table.getn(recipes) > 0 then
+        ProfessionAssistantDB.recipes[profession.id] = recipes
+    end
     self.LastScanError = nil
     self.LastScanProfession = profession.id
     self.LastScanCount = table.getn(recipes)
