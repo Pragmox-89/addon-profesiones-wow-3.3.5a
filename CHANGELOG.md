@@ -6,6 +6,7 @@
 - Deja las recetas grises al final; prioriza materiales disponibles y pondera faltantes, variedad y rareza reportada por el cliente.
 - Permite seleccionar una sugerencia para ver sus materiales en el panel principal, sin fabricar automáticamente.
 - Aclara que el juego no proporciona rutas de farmeo ni vendedores para calcular una dificultad exacta de obtención.
+- Mantiene la ventana de recomendaciones cerrada al abrir `/pa`; se muestra al pulsar el botón.
 
 ## 0.8.5
 
