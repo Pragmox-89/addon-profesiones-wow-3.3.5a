@@ -2,8 +2,12 @@
 
 Addon para World of Warcraft 3.3.5a (Interface 30300). Detecta las profesiones aprendidas, separa primarias y secundarias, y lee las recetas que conoce el personaje.
 
-## Versión 0.8.4
+## Versión 0.8.5
 
+- Al elegir una profesión en el addon, carga y actualiza sus recetas sin que el jugador abra manualmente el libro nativo.
+- Guarda por personaje las recetas ya descubiertas y las muestra al volver a iniciar sesión.
+- Oculta el libro nativo durante la lectura; si el addon lo abrió, lo cierra al cerrar el asistente.
+- Si el libro ya estaba abierto antes de usar el addon, lo restaura al cerrar el asistente.
 - Selector de cantidad con botones de incremento y decremento.
 - Botón **Fabricar** conectado a la fabricación nativa del cliente.
 - Los ingredientes muestran el total necesario según la cantidad elegida.
@@ -21,13 +25,13 @@ El addon muestra las recetas que el personaje ya conoce y que aparecen en el lib
 2. Coloca la carpeta `ProfessionAssistant` directamente en `Interface/AddOns/`.
 3. Comprueba que `ProfessionAssistant.toc` quede en `Interface/AddOns/ProfessionAssistant/`, junto a `Core.lua`, `Data/` y `UI/`.
 4. En la pantalla de personajes, activa Profession Assistant en **Accesorios** y, si aparece, **Cargar accesorios desactualizados**.
-5. Entra al personaje, escribe `/pa` y abre una profesión aprendida para cargar sus recetas.
+5. Entra al personaje, escribe `/pa` y selecciona una profesión aprendida. El addon actualizará su lista automáticamente.
 
 ## Comandos
 
 - `/pa`: abre o cierra la ventana.
 - `/pa debug`: muestra el estado de carga y las profesiones detectadas.
-- `/pa scan`: vuelve a leer el libro de profesión abierto.
+- `/pa scan`: vuelve a leer el libro nativo abierto, si necesitas forzar una actualización.
 
 ## Compatibilidad
 
