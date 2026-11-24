@@ -539,6 +539,7 @@ function PA:CreateProfessionFrame()
         recommendationPopup:Hide()
         recommendationOverlay:Hide()
     end)
+    recommendationPopup:Hide()
 
     local statusPanel = CreatePanel(frame)
     statusPanel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 24, 18)
