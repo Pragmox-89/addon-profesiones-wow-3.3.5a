@@ -1,5 +1,5 @@
 PA = PA or {}
-PA.VERSION = "0.8.3"
+PA.VERSION = "0.8.4"
 
 PA_ProfessionCatalog = {
     { id = "ALCHEMY", name = "Alquimia", category = "PRIMARY", skillNames = { "Alquimia", "Alchemy" }, module = nil },
@@ -53,3 +53,4 @@ function PA:GetProfession(id)
     if not id then return nil end
     return self.Professions[id]
 end
+
