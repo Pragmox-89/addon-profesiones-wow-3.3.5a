@@ -1,6 +1,6 @@
 PA = PA or {}
 
-local ADDON_VERSION = PA.VERSION or "0.8.2"
+local ADDON_VERSION = PA.VERSION or "0.8.4"
 local addon = CreateFrame("Frame")
 local function Print(message)
     if DEFAULT_CHAT_FRAME then
@@ -84,3 +84,4 @@ end
 SLASH_PROFESSIONASSISTANT1 = "/pa"
 SLASH_PROFESSIONASSISTANT2 = "/professionassistant"
 SlashCmdList["PROFESSIONASSISTANT"] = HandleCommand
+
