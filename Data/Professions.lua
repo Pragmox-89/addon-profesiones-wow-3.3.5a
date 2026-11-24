@@ -1,5 +1,5 @@
 PA = PA or {}
-PA.VERSION = "0.8.5"
+PA.VERSION = "0.9.0"
 
 PA_ProfessionCatalog = {
     { id = "ALCHEMY", name = "Alquimia", category = "PRIMARY", skillNames = { "Alquimia", "Alchemy" }, module = nil },
