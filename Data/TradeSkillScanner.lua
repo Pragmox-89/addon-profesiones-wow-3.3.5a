@@ -46,10 +46,11 @@ function PA:ScanTradeSkill()
                 key = resultLink or (name .. ":" .. tostring(index)),
                 name = name,
                 result = resultName or GetLinkName(resultLink) or name,
+                resultLink = resultLink,
                 resultTexture = resultTexture,
                 difficulty = GetDifficulty(skillType),
                 craftableCount = tonumber(craftableCount),
-                description = "Dato leído del libro de profesión de este personaje.",
+                tradeSkillIndex = index,
                 materials = {}
             }
 
@@ -88,9 +89,9 @@ function PA:ScanTradeSkill()
         if self.frame.professionID == profession.id then
             local message
             if table.getn(recipes) > 0 then
-                message = "Recetas conocidas leídas del libro: " .. tostring(table.getn(recipes))
+                message = tostring(table.getn(recipes)) .. " recetas"
             else
-                message = "El libro de esta profesión está vacío o no entregó recetas."
+                message = "Sin recetas"
             end
             self.frame:SetRecipeStatus(message)
         end
